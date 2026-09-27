@@ -86,8 +86,12 @@ test.describe('ChangeProof Workbench E2E Flow', () => {
     const scenarioSelect = page.locator('#select-scenario');
     await expect(scenarioSelect).toBeVisible();
 
-    // 1. Select Auth scenario
+    // 1. Select Auth scenario (page stays blank until Run Analysis is clicked)
     await scenarioSelect.selectOption('auth');
+    await expect(page.locator('#empty-scenario-state')).toBeVisible();
+
+    // Click Run Analysis to populate Auth
+    await page.locator('#btn-run-sample').click();
     await expect(page.locator('#btn-run-sample')).toBeEnabled();
 
     // Verify Auth analysis loaded
@@ -99,8 +103,12 @@ test.describe('ChangeProof Workbench E2E Flow', () => {
     await page.locator('#tab-btn-findings').click();
     await expect(page.locator('#findings-tab-view')).toContainText('CONFIG_OR_SCHEMA_CHANGED');
 
-    // 2. Select Payments scenario
+    // 2. Select Payments scenario (page stays blank until Run Analysis is clicked)
     await scenarioSelect.selectOption('payments');
+    await expect(page.locator('#empty-scenario-state')).toBeVisible();
+
+    // Click Run Analysis to populate Payments
+    await page.locator('#btn-run-sample').click();
     await expect(page.locator('#btn-run-sample')).toBeEnabled();
 
     // Verify Payments analysis loaded

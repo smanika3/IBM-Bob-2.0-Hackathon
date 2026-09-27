@@ -16,15 +16,7 @@ import {
   fetchTraceability,
   postReviewDecision,
 } from './api.js';
-import {
-  SAMPLE_RUN,
-  SAMPLE_FINDINGS,
-  SAMPLE_TRACEABILITY,
-  SAMPLE_EVIDENCE_LINKS,
-  SAMPLE_CHANGED_ARTIFACTS,
-  SAMPLE_TEST_ARTIFACTS,
-  SAMPLE_DECISIONS,
-} from './sample-data.js';
+import { getScenarioDataset } from './sample-data.js';
 import type {
   ActiveTab,
   AnalysisRun,
@@ -127,60 +119,27 @@ export default function App(): React.ReactElement {
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [selectedBundle, setSelectedBundle] = React.useState('sample');
 
-  // Active run state
-  const [currentRun, setCurrentRun] = React.useState<AnalysisRun>(SAMPLE_RUN);
-  const [findings, setFindings] = React.useState<Finding[]>(SAMPLE_FINDINGS);
-  const [decisions, setDecisions] = React.useState<ReviewDecision[]>(SAMPLE_DECISIONS);
-  const [requirements, setRequirements] =
-    React.useState<TraceabilityRequirement[]>(SAMPLE_TRACEABILITY);
-  const [evidenceLinks, setEvidenceLinks] = React.useState<EvidenceLink[]>(SAMPLE_EVIDENCE_LINKS);
-  const [changedArtifacts, setChangedArtifacts] =
-    React.useState<ChangedArtifact[]>(SAMPLE_CHANGED_ARTIFACTS);
-  const [testArtifacts, setTestArtifacts] = React.useState<TestArtifact[]>(SAMPLE_TEST_ARTIFACTS);
+  // Active run state (starts blank until Run Analysis is clicked)
+  const [currentRun, setCurrentRun] = React.useState<AnalysisRun | null>(null);
+  const [findings, setFindings] = React.useState<Finding[]>([]);
+  const [decisions, setDecisions] = React.useState<ReviewDecision[]>([]);
+  const [requirements, setRequirements] = React.useState<TraceabilityRequirement[]>([]);
+  const [evidenceLinks, setEvidenceLinks] = React.useState<EvidenceLink[]>([]);
+  const [changedArtifacts, setChangedArtifacts] = React.useState<ChangedArtifact[]>([]);
+  const [testArtifacts, setTestArtifacts] = React.useState<TestArtifact[]>([]);
 
   // UI state
   const [selectedFinding, setSelectedFinding] = React.useState<Finding | null>(null);
   const [showExportModal, setShowExportModal] = React.useState(false);
   const [bannerNotice, setBannerNotice] = React.useState<string | null>(null);
 
-  // Check health and initialize
+  // Check API health on mount
   React.useEffect(() => {
     let isMounted = true;
     checkApiHealth()
-      .then(async (online) => {
+      .then((online) => {
         if (!isMounted) return;
         setIsApiOnline(online);
-        if (online) {
-          try {
-            // Run or load initial sample through API
-            const run = await triggerAnalysis('sample');
-            if (!isMounted) return;
-            setCurrentRun(run);
-            const findingsRes = await fetchFindings(run.id);
-            const traceRes = await fetchTraceability(run.id);
-            if (!isMounted) return;
-            setFindings(findingsRes.findings);
-            setDecisions(findingsRes.decisions);
-            setEvidenceLinks(traceRes.evidenceLinks);
-            setChangedArtifacts(traceRes.changedArtifacts);
-            setTestArtifacts(traceRes.testArtifacts);
-
-            const enriched = enrichTraceability(
-              traceRes.requirements,
-              traceRes.changedArtifacts,
-              traceRes.testArtifacts,
-              traceRes.evidenceLinks,
-              findingsRes.findings,
-            );
-            setRequirements(enriched);
-          } catch (e) {
-            console.warn('API error initializing sample run, using preloaded fixture:', e);
-          }
-        } else {
-          setBannerNotice(
-            '⚡ Demo Mode: Fastify API offline — using preloaded synthetic checkout fixture. Start the API with "pnpm --filter @changeproof/api dev" for live SQLite persistence.',
-          );
-        }
       })
       .catch((e) => console.error(e));
 
@@ -193,35 +152,41 @@ export default function App(): React.ReactElement {
     setIsAnalyzing(true);
     try {
       if (isApiOnline) {
-        const run = await triggerAnalysis(bundleId);
-        setCurrentRun(run);
-        const findingsRes = await fetchFindings(run.id);
-        const traceRes = await fetchTraceability(run.id);
-        setFindings(findingsRes.findings);
-        setDecisions(findingsRes.decisions);
-        setEvidenceLinks(traceRes.evidenceLinks);
-        setChangedArtifacts(traceRes.changedArtifacts);
-        setTestArtifacts(traceRes.testArtifacts);
+        try {
+          const run = await triggerAnalysis(bundleId);
+          setCurrentRun(run);
+          const findingsRes = await fetchFindings(run.id);
+          const traceRes = await fetchTraceability(run.id);
+          setFindings(findingsRes.findings);
+          setDecisions(findingsRes.decisions);
+          setEvidenceLinks(traceRes.evidenceLinks);
+          setChangedArtifacts(traceRes.changedArtifacts);
+          setTestArtifacts(traceRes.testArtifacts);
 
-        const enriched = enrichTraceability(
-          traceRes.requirements,
-          traceRes.changedArtifacts,
-          traceRes.testArtifacts,
-          traceRes.evidenceLinks,
-          findingsRes.findings,
-        );
-        setRequirements(enriched);
-      } else {
-        // Reset to preloaded fixture
-        await new Promise((r) => setTimeout(r, 600)); // slight artificial delay for feedback
-        setCurrentRun(SAMPLE_RUN);
-        setFindings(SAMPLE_FINDINGS);
-        setDecisions(SAMPLE_DECISIONS);
-        setRequirements(SAMPLE_TRACEABILITY);
-        setEvidenceLinks(SAMPLE_EVIDENCE_LINKS);
-        setChangedArtifacts(SAMPLE_CHANGED_ARTIFACTS);
-        setTestArtifacts(SAMPLE_TEST_ARTIFACTS);
+          const enriched = enrichTraceability(
+            traceRes.requirements,
+            traceRes.changedArtifacts,
+            traceRes.testArtifacts,
+            traceRes.evidenceLinks,
+            findingsRes.findings,
+          );
+          setRequirements(enriched);
+          return;
+        } catch (apiErr) {
+          console.warn('API error, falling back to standalone dataset:', apiErr);
+        }
       }
+
+      // Standalone Cloud Demo mode: load bundled dataset for the selected scenario
+      await new Promise((r) => setTimeout(r, 400));
+      const dataset = getScenarioDataset(bundleId);
+      setCurrentRun(dataset.run);
+      setFindings(dataset.findings);
+      setDecisions(dataset.decisions);
+      setRequirements(dataset.requirements);
+      setEvidenceLinks(dataset.evidenceLinks);
+      setChangedArtifacts(dataset.changedArtifacts);
+      setTestArtifacts(dataset.testArtifacts);
     } catch (err) {
       console.error(err);
       alert(`Analysis execution failed for ${bundleId}.`);
@@ -270,7 +235,15 @@ export default function App(): React.ReactElement {
         selectedBundle={selectedBundle}
         onSelectBundle={(id) => {
           setSelectedBundle(id);
-          void handleRunSample(id);
+          // Keep page blank on switch until Run Analysis is clicked
+          setCurrentRun(null);
+          setFindings([]);
+          setDecisions([]);
+          setRequirements([]);
+          setEvidenceLinks([]);
+          setChangedArtifacts([]);
+          setTestArtifacts([]);
+          setSelectedFinding(null);
         }}
         onRunSample={(id) => {
           void handleRunSample(id ?? selectedBundle);
@@ -342,30 +315,85 @@ export default function App(): React.ReactElement {
         )}
 
         <ErrorBoundary fallbackTitle="View Error">
-          {activeTab === 'overview' && (
-            <OverviewTab
-              run={currentRun}
-              findings={findings}
-              decisions={decisions}
-              onGoToFindings={() => setActiveTab('findings')}
-              onGoToTraceability={() => setActiveTab('traceability')}
-              onOpenFindingDrawer={(f) => setSelectedFinding(f)}
-            />
+          {!currentRun && activeTab !== 'how-it-works' ? (
+            <div
+              className="panel"
+              id="empty-scenario-state"
+              style={{
+                textAlign: 'center',
+                padding: '4.5rem 2rem',
+                margin: '1.5rem 0',
+                background: 'var(--bg-subtle)',
+                border: '1px dashed var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+              }}
+            >
+              <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⚡</div>
+              <h2
+                style={{
+                  fontSize: '1.35rem',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  marginBottom: '0.6rem',
+                }}
+              >
+                Ready to Analyze: {getScenarioDataset(selectedBundle).name}
+              </h2>
+              <p
+                style={{
+                  color: 'var(--text-secondary)',
+                  maxWidth: '520px',
+                  margin: '0 auto 1.5rem',
+                  lineHeight: 1.6,
+                  fontSize: '0.9rem',
+                }}
+              >
+                {getScenarioDataset(selectedBundle).description}
+              </p>
+              <p
+                style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}
+              >
+                Click <strong>▶ Run Analysis</strong> in the header to parse requirements, inspect
+                AST changes, and verify test evidence.
+              </p>
+              <button
+                className="btn btn-primary"
+                id="btn-run-from-empty"
+                onClick={() => void handleRunSample(selectedBundle)}
+                disabled={isAnalyzing}
+                style={{ padding: '0.65rem 1.6rem', fontSize: '0.9rem' }}
+              >
+                {isAnalyzing ? 'Analyzing Scenario...' : '▶ Run Analysis'}
+              </button>
+            </div>
+          ) : (
+            <>
+              {activeTab === 'overview' && currentRun && (
+                <OverviewTab
+                  run={currentRun}
+                  findings={findings}
+                  decisions={decisions}
+                  onGoToFindings={() => setActiveTab('findings')}
+                  onGoToTraceability={() => setActiveTab('traceability')}
+                  onOpenFindingDrawer={(f) => setSelectedFinding(f)}
+                />
+              )}
+
+              {activeTab === 'traceability' && <TraceabilityTab requirements={requirements} />}
+
+              {activeTab === 'findings' && (
+                <FindingsTab
+                  findings={findings}
+                  decisions={decisions}
+                  onSelectFinding={(f) => setSelectedFinding(f)}
+                />
+              )}
+
+              {activeTab === 'evidence' && <EvidenceTab evidenceLinks={evidenceLinks} />}
+
+              {activeTab === 'how-it-works' && <HowItWorksTab />}
+            </>
           )}
-
-          {activeTab === 'traceability' && <TraceabilityTab requirements={requirements} />}
-
-          {activeTab === 'findings' && (
-            <FindingsTab
-              findings={findings}
-              decisions={decisions}
-              onSelectFinding={(f) => setSelectedFinding(f)}
-            />
-          )}
-
-          {activeTab === 'evidence' && <EvidenceTab evidenceLinks={evidenceLinks} />}
-
-          {activeTab === 'how-it-works' && <HowItWorksTab />}
         </ErrorBoundary>
       </main>
 

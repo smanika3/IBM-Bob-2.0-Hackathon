@@ -602,3 +602,2548 @@ export const SAMPLE_EVIDENCE_LINKS: EvidenceLink[] = [
     sourceLocation: { filePath: 'tests/tax/tax.calculator.test.ts', startLine: 10, endLine: 22 },
   },
 ];
+
+export interface ScenarioDataset {
+  bundleId: string;
+  name: string;
+  description: string;
+  run: AnalysisRun;
+  changedArtifacts: ChangedArtifact[];
+  testArtifacts: TestArtifact[];
+  findings: Finding[];
+  decisions: ReviewDecision[];
+  requirements: TraceabilityRequirement[];
+  evidenceLinks: EvidenceLink[];
+}
+
+export const AUTH_DATASET: ScenarioDataset = {
+  bundleId: 'auth',
+  name: 'Auth & Session Service',
+  description: 'JWT token rotation, password complexity, and MFA challenge verification.',
+  run: {
+    id: '37a60428-27fa-49e9-98db-6487af8fea78',
+    name: 'Auth & Session Service Analysis',
+    status: 'completed',
+    contentFingerprint: '327cc7fb340edafc34082cd1be02bd2a6c720436f78662a40a6ad2847a917504',
+    bundleId: 'auth',
+    createdAt: '2026-09-27T12:41:36.766Z',
+    completedAt: '2026-09-27T12:41:36.766Z',
+    summary: {
+      totalRequirements: 5,
+      totalChangedArtifacts: 3,
+      totalTestArtifacts: 8,
+      totalEvidenceLinks: 37,
+      totalFindings: 8,
+      findingsBySeverity: {
+        critical: 0,
+        high: 3,
+        medium: 3,
+        low: 2,
+        informational: 0,
+      },
+      findingsByStatus: {
+        verified: 0,
+        partial: 1,
+        missing_evidence: 3,
+        needs_human_review: 4,
+        informational: 0,
+      },
+      needsHumanReviewCount: 4,
+    },
+  },
+  changedArtifacts: [
+    {
+      id: 'artifact-1',
+      filePath: 'src/auth/jwt.service.ts',
+      changeType: 'modified',
+      symbols: [
+        'JwtPayload',
+        'TokenExpiredError',
+        'VerifyTokenOptions',
+        'createToken',
+        'verifyToken',
+      ],
+      addedLines: 6,
+      deletedLines: 1,
+      hunks: [
+        {
+          oldStart: 14,
+          oldCount: 6,
+          newStart: 14,
+          newCount: 11,
+          lines: [
+            '   }',
+            ' }',
+            ' ',
+            '+export interface VerifyTokenOptions {',
+            '+  ignoreExpiration?: boolean;',
+            '+  clockToleranceSeconds?: number;',
+            '+}',
+            '+',
+            ' /**',
+            '  * REQ-102 — Issues HS256 signed JWT tokens',
+            '  */',
+          ],
+        },
+        {
+          oldStart: 28,
+          oldCount: 7,
+          newStart: 33,
+          newCount: 8,
+          lines: [
+            ' /**',
+            '  * REQ-102 — Verifies JWT token and checks expiration',
+            '  * PUBLIC API CHANGED in this PR: accepts VerifyTokenOptions parameter.',
+            '  */',
+            '-export function verifyToken(token: string): JwtPayload {',
+            '+export function verifyToken(token: string, options?: VerifyTokenOptions): JwtPayload {',
+            "   const decoded = JSON.parse(Buffer.from(token, 'base64url').toString('utf8')) as JwtPayload;",
+            '   const now = Math.floor(Date.now() / 1000);',
+            ' ',
+          ],
+        },
+      ],
+      isPublicApi: true,
+      isConfig: false,
+      isSchema: false,
+      isTest: false,
+      isDocumentation: false,
+    },
+    {
+      id: 'artifact-2',
+      filePath: 'src/auth/mfa.service.ts',
+      changeType: 'added',
+      symbols: ['MfaChallenge', 'MfaSecret', 'generateMfaSecret', 'verifyMfaCode'],
+      addedLines: 29,
+      deletedLines: 0,
+      hunks: [
+        {
+          oldStart: 0,
+          oldCount: 0,
+          newStart: 1,
+          newCount: 32,
+          lines: [
+            '+// Synthetic fixture — not executable by ChangeProof',
+            '+// REQ-103 — Multi-factor authentication verification',
+            '+// NOTE: Added in PR but tests not yet implemented (triggers TEST_GAP_ON_CHANGED_SYMBOL)',
+            '+',
+            '+export interface MfaChallenge {',
+            '+  challengeId: string;',
+            '+  userId: string;',
+            '+  expiresAt: string;',
+            '+}',
+            '+',
+            '+export interface MfaSecret {',
+            '+  base32: string;',
+            '+  otpauthUrl: string;',
+            '+}',
+            '+',
+            '+export function generateMfaSecret(userId: string): MfaSecret {',
+            "+  const base32 = Buffer.from(`secret-${userId}-${Date.now()}`).toString('hex');",
+            '+  return {',
+            '+    base32,',
+            '+    otpauthUrl: `otpauth://totp/ChangeProofAuth:${userId}?secret=${base32}&issuer=ChangeProofAuth`,',
+            '+  };',
+            '+}',
+            '+',
+            '+export function verifyMfaCode(secret: string, code: string): boolean {',
+            '+  if (!code || code.length !== 6 || !/^\\d{6}$/.test(code)) {',
+            '+    return false;',
+            '+  }',
+            "+  return code === '123456';",
+            '+}',
+          ],
+        },
+      ],
+      isPublicApi: true,
+      isConfig: false,
+      isSchema: false,
+      isTest: false,
+      isDocumentation: false,
+    },
+    {
+      id: 'artifact-3',
+      filePath: 'src/config/auth.config.ts',
+      changeType: 'modified',
+      symbols: ['AuthConfig', 'ConfigValidationError', 'DEFAULT_AUTH_CONFIG', 'loadAuthConfig'],
+      addedLines: 1,
+      deletedLines: 0,
+      hunks: [
+        {
+          oldStart: 5,
+          oldCount: 6,
+          newStart: 5,
+          newCount: 7,
+          lines: [
+            '   jwtSecret: string;',
+            '   jwtIssuer: string;',
+            '   tokenTtlMinutes: number;',
+            '+  mfaEnabled: boolean;',
+            '   maxFailedAttempts: number;',
+            ' }',
+            ' ',
+            '',
+          ],
+        },
+      ],
+      isPublicApi: false,
+      isConfig: true,
+      isSchema: false,
+      isTest: false,
+      isDocumentation: false,
+    },
+  ],
+  testArtifacts: [
+    {
+      id: 'test-tests/auth/jwt.service.test.ts-1',
+      filePath: 'tests/auth/jwt.service.test.ts',
+      testName:
+        'REQ-102 jwt.service > AC-102-1: generates an HS256 signed token with 15 minutes TTL',
+      referencedSymbols: [
+        'TokenExpiredError',
+        'createToken',
+        'describe',
+        'expect',
+        'it',
+        'verifyToken',
+      ],
+      referencedRequirementIds: ['REQ-102'],
+    },
+    {
+      id: 'test-tests/auth/jwt.service.test.ts-2',
+      filePath: 'tests/auth/jwt.service.test.ts',
+      testName: 'REQ-102 jwt.service > AC-102-2: decodes and verifies a valid token payload',
+      referencedSymbols: [
+        'TokenExpiredError',
+        'createToken',
+        'describe',
+        'expect',
+        'it',
+        'verifyToken',
+      ],
+      referencedRequirementIds: ['REQ-102'],
+    },
+    {
+      id: 'test-tests/auth/lockout.service.test.ts-1',
+      filePath: 'tests/auth/lockout.service.test.ts',
+      testName: 'REQ-104 lockout.service > AC-104-1: allows login attempts below threshold',
+      referencedSymbols: [
+        'AccountLockedError',
+        'describe',
+        'expect',
+        'it',
+        'recordLoginFailure',
+        'recordLoginSuccess',
+      ],
+      referencedRequirementIds: ['REQ-104'],
+    },
+    {
+      id: 'test-tests/auth/lockout.service.test.ts-2',
+      filePath: 'tests/auth/lockout.service.test.ts',
+      testName: 'REQ-104 lockout.service > AC-104-2: locks account after 5 consecutive failures',
+      referencedSymbols: [
+        'AccountLockedError',
+        'describe',
+        'expect',
+        'it',
+        'recordLoginFailure',
+        'recordLoginSuccess',
+      ],
+      referencedRequirementIds: ['REQ-104'],
+    },
+    {
+      id: 'test-tests/auth/lockout.service.test.ts-3',
+      filePath: 'tests/auth/lockout.service.test.ts',
+      testName: 'REQ-104 lockout.service > AC-104-3: resets failure counter on successful login',
+      referencedSymbols: [
+        'AccountLockedError',
+        'describe',
+        'expect',
+        'it',
+        'recordLoginFailure',
+        'recordLoginSuccess',
+      ],
+      referencedRequirementIds: ['REQ-104'],
+    },
+    {
+      id: 'test-tests/auth/password.validator.test.ts-1',
+      filePath: 'tests/auth/password.validator.test.ts',
+      testName:
+        'REQ-101 validatePassword > AC-101-1: accepts strong password with uppercase, digit, and special symbol',
+      referencedSymbols: ['WeakPasswordError', 'describe', 'expect', 'it', 'validatePassword'],
+      referencedRequirementIds: ['REQ-101'],
+    },
+    {
+      id: 'test-tests/auth/password.validator.test.ts-2',
+      filePath: 'tests/auth/password.validator.test.ts',
+      testName:
+        'REQ-101 validatePassword > AC-101-2: throws WeakPasswordError for passwords shorter than 10 characters',
+      referencedSymbols: ['WeakPasswordError', 'describe', 'expect', 'it', 'validatePassword'],
+      referencedRequirementIds: ['REQ-101'],
+    },
+    {
+      id: 'test-tests/auth/password.validator.test.ts-3',
+      filePath: 'tests/auth/password.validator.test.ts',
+      testName:
+        'REQ-101 validatePassword > AC-101-3: throws WeakPasswordError when special characters are missing',
+      referencedSymbols: ['WeakPasswordError', 'describe', 'expect', 'it', 'validatePassword'],
+      referencedRequirementIds: ['REQ-101'],
+    },
+  ],
+  findings: [
+    {
+      id: 'finding-000001',
+      ruleId: 'REQ_WITHOUT_CODE',
+      severity: 'high',
+      status: 'missing_evidence',
+      title: 'REQ-101 has no implementation evidence in the changed files',
+      explanation:
+        'Requirement "Strong password validation" has no changed file linked with strong or moderate match strength. Either the implementation is not in this diff, or the traceability is missing.',
+      requirementIds: ['REQ-101'],
+      changedArtifactIds: [],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Verify that the implementation of REQ-101 is included in this diff. If out-of-scope, document the decision.',
+    },
+    {
+      id: 'finding-000002',
+      ruleId: 'REQ_WITHOUT_CODE',
+      severity: 'high',
+      status: 'missing_evidence',
+      title: 'REQ-104 has no implementation evidence in the changed files',
+      explanation:
+        'Requirement "Account lockout on failed logins" has no changed file linked with strong or moderate match strength. Either the implementation is not in this diff, or the traceability is missing.',
+      requirementIds: ['REQ-104'],
+      changedArtifactIds: [],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Verify that the implementation of REQ-104 is included in this diff. If out-of-scope, document the decision.',
+    },
+    {
+      id: 'finding-000003',
+      ruleId: 'PUBLIC_API_CHANGED',
+      severity: 'medium',
+      status: 'needs_human_review',
+      title: 'Public API changed: src/auth/jwt.service.ts',
+      explanation:
+        'The file "src/auth/jwt.service.ts" contains exported symbols [JwtPayload, TokenExpiredError, VerifyTokenOptions, createToken, verifyToken] that were changed. Public API changes may affect callers. Linked requirements: REQ-102, REQ-103, REQ-104, REQ-105.',
+      requirementIds: ['REQ-102', 'REQ-103', 'REQ-104', 'REQ-105'],
+      changedArtifactIds: ['artifact-1'],
+      testArtifactIds: [],
+      evidenceLinkIds: ['link-000002', 'link-000004', 'link-000006', 'link-000007'],
+      matchStrength: 'moderate',
+      recommendedAction:
+        'Review the public API change in "src/auth/jwt.service.ts". Update documentation and callers if necessary.',
+    },
+    {
+      id: 'finding-000004',
+      ruleId: 'PUBLIC_API_CHANGED',
+      severity: 'medium',
+      status: 'needs_human_review',
+      title: 'Public API changed: src/auth/mfa.service.ts',
+      explanation:
+        'The file "src/auth/mfa.service.ts" contains exported symbols [MfaChallenge, MfaSecret, generateMfaSecret, verifyMfaCode] that were changed. Public API changes may affect callers. Linked requirements: REQ-102, REQ-103, REQ-105.',
+      requirementIds: ['REQ-102', 'REQ-103', 'REQ-105'],
+      changedArtifactIds: ['artifact-2'],
+      testArtifactIds: [],
+      evidenceLinkIds: ['link-000003', 'link-000005', 'link-000008'],
+      matchStrength: 'moderate',
+      recommendedAction:
+        'Review the public API change in "src/auth/mfa.service.ts". Update documentation and callers if necessary.',
+    },
+    {
+      id: 'finding-000005',
+      ruleId: 'CONFIG_OR_SCHEMA_CHANGED',
+      severity: 'medium',
+      status: 'partial',
+      title: 'Configuration/schema changed: src/config/auth.config.ts',
+      explanation:
+        '"src/config/auth.config.ts" is a configuration or schema file that was changed. Linked to: REQ-101, REQ-105. Ensure the change is intentional and documented.',
+      requirementIds: ['REQ-101', 'REQ-105'],
+      changedArtifactIds: ['artifact-3'],
+      testArtifactIds: [],
+      evidenceLinkIds: ['link-000001', 'link-000009'],
+      matchStrength: 'moderate',
+      recommendedAction:
+        'Review the configuration change and confirm documentation is updated. Validate all consumers of this configuration.',
+    },
+    {
+      id: 'finding-000006',
+      ruleId: 'TEST_GAP_ON_CHANGED_SYMBOL',
+      severity: 'high',
+      status: 'missing_evidence',
+      title: 'Changed symbols in src/auth/mfa.service.ts have no test coverage',
+      explanation:
+        'Symbols [MfaChallenge, MfaSecret, generateMfaSecret, verifyMfaCode] in "src/auth/mfa.service.ts" were changed but no test references them. Missing test coverage on changed behavior is a risk.',
+      requirementIds: [],
+      changedArtifactIds: ['artifact-2'],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Add tests covering: MfaChallenge, MfaSecret, generateMfaSecret in "src/auth/mfa.service.ts".',
+    },
+    {
+      id: 'finding-000007',
+      ruleId: 'DOC_STALE_OR_MISSING',
+      severity: 'low',
+      status: 'needs_human_review',
+      title: 'Changed symbols in src/auth/jwt.service.ts may not be documented',
+      explanation:
+        'Symbols [JwtPayload, TokenExpiredError, VerifyTokenOptions] changed in "src/auth/jwt.service.ts" do not appear in any documentation file. Documentation may be stale or missing.',
+      requirementIds: ['REQ-102', 'REQ-103', 'REQ-104', 'REQ-105'],
+      changedArtifactIds: ['artifact-1'],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'weak',
+      recommendedAction: 'Review documentation for "src/auth/jwt.service.ts" and update as needed.',
+    },
+    {
+      id: 'finding-000008',
+      ruleId: 'DOC_STALE_OR_MISSING',
+      severity: 'low',
+      status: 'needs_human_review',
+      title: 'Changed symbols in src/auth/mfa.service.ts may not be documented',
+      explanation:
+        'Symbols [MfaChallenge, MfaSecret, generateMfaSecret] changed in "src/auth/mfa.service.ts" do not appear in any documentation file. Documentation may be stale or missing.',
+      requirementIds: ['REQ-102', 'REQ-103', 'REQ-105'],
+      changedArtifactIds: ['artifact-2'],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'weak',
+      recommendedAction: 'Review documentation for "src/auth/mfa.service.ts" and update as needed.',
+    },
+  ],
+  decisions: [],
+  requirements: [
+    {
+      id: 'REQ-101',
+      title: 'Strong password validation',
+      body: 'User passwords must enforce complexity constraints before account registration or credential reset. Passwords must be at least 10 characters long and contain at least one uppercase letter, one digit, and one special character.\n\n### Acceptance criteria\n\n- AC-101-1: Given a password of 10+ characters with uppercase, digit, and special symbol, `validatePassword` returns `true`.\n- AC-101-2: Given a password shorter than 10 characters, `validatePassword` throws `WeakPasswordError`.\n- AC-101-3: Given a password without special characters, `validatePassword` throws `WeakPasswordError`.\n\n**Source:** `src/auth/password.validator.ts`\n\n---',
+      acceptanceCriteria: [
+        {
+          id: 'AC-101-1',
+          requirementId: 'REQ-101',
+          text: 'Given a password of 10+ characters with uppercase, digit, and special symbol, `validatePassword` returns `true`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 14,
+          },
+        },
+        {
+          id: 'AC-101-2',
+          requirementId: 'REQ-101',
+          text: 'Given a password shorter than 10 characters, `validatePassword` throws `WeakPasswordError`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 15,
+          },
+        },
+        {
+          id: 'AC-101-3',
+          requirementId: 'REQ-101',
+          text: 'Given a password without special characters, `validatePassword` throws `WeakPasswordError`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 16,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 8,
+      },
+      tags: [],
+      linkedCodeArtifacts: [
+        {
+          id: 'artifact-3',
+          filePath: 'src/config/auth.config.ts',
+          symbols: ['AuthConfig', 'ConfigValidationError', 'DEFAULT_AUTH_CONFIG', 'loadAuthConfig'],
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      linkedTestArtifacts: [
+        {
+          id: 'test-tests/auth/lockout.service.test.ts-1',
+          filePath: 'tests/auth/lockout.service.test.ts',
+          testName: 'REQ-104 lockout.service > AC-104-1: allows login attempts below threshold',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/lockout.service.test.ts-2',
+          filePath: 'tests/auth/lockout.service.test.ts',
+          testName:
+            'REQ-104 lockout.service > AC-104-2: locks account after 5 consecutive failures',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/lockout.service.test.ts-3',
+          filePath: 'tests/auth/lockout.service.test.ts',
+          testName:
+            'REQ-104 lockout.service > AC-104-3: resets failure counter on successful login',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/password.validator.test.ts-1',
+          filePath: 'tests/auth/password.validator.test.ts',
+          testName:
+            'REQ-101 validatePassword > AC-101-1: accepts strong password with uppercase, digit, and special symbol',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/auth/password.validator.test.ts-2',
+          filePath: 'tests/auth/password.validator.test.ts',
+          testName:
+            'REQ-101 validatePassword > AC-101-2: throws WeakPasswordError for passwords shorter than 10 characters',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/auth/password.validator.test.ts-3',
+          filePath: 'tests/auth/password.validator.test.ts',
+          testName:
+            'REQ-101 validatePassword > AC-101-3: throws WeakPasswordError when special characters are missing',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+      ],
+      status: 'missing_evidence',
+    },
+    {
+      id: 'REQ-102',
+      title: 'JWT token signature and expiration',
+      body: 'Authentication tokens must be signed with the HS256 algorithm and contain user role claims. Access tokens must expire exactly 15 minutes after issuance.\n\n### Acceptance criteria\n\n- AC-102-1: `createToken` generates an HS256 signed token with expiration set to 15 minutes.\n- AC-102-2: `verifyToken` decodes valid tokens and verifies expiry against the current system time.\n- AC-102-3: Given an expired token, `verifyToken` throws `TokenExpiredError`.\n\n**Source:** `src/auth/jwt.service.ts`\n\n---',
+      acceptanceCriteria: [
+        {
+          id: 'AC-102-1',
+          requirementId: 'REQ-102',
+          text: '`createToken` generates an HS256 signed token with expiration set to 15 minutes.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 28,
+          },
+        },
+        {
+          id: 'AC-102-2',
+          requirementId: 'REQ-102',
+          text: '`verifyToken` decodes valid tokens and verifies expiry against the current system time.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 29,
+          },
+        },
+        {
+          id: 'AC-102-3',
+          requirementId: 'REQ-102',
+          text: 'Given an expired token, `verifyToken` throws `TokenExpiredError`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 30,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 22,
+      },
+      tags: [],
+      linkedCodeArtifacts: [
+        {
+          id: 'artifact-1',
+          filePath: 'src/auth/jwt.service.ts',
+          symbols: [
+            'JwtPayload',
+            'TokenExpiredError',
+            'VerifyTokenOptions',
+            'createToken',
+            'verifyToken',
+          ],
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'artifact-2',
+          filePath: 'src/auth/mfa.service.ts',
+          symbols: ['MfaChallenge', 'MfaSecret', 'generateMfaSecret', 'verifyMfaCode'],
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      linkedTestArtifacts: [
+        {
+          id: 'test-tests/auth/jwt.service.test.ts-1',
+          filePath: 'tests/auth/jwt.service.test.ts',
+          testName:
+            'REQ-102 jwt.service > AC-102-1: generates an HS256 signed token with 15 minutes TTL',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/auth/jwt.service.test.ts-2',
+          filePath: 'tests/auth/jwt.service.test.ts',
+          testName: 'REQ-102 jwt.service > AC-102-2: decodes and verifies a valid token payload',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/auth/lockout.service.test.ts-1',
+          filePath: 'tests/auth/lockout.service.test.ts',
+          testName: 'REQ-104 lockout.service > AC-104-1: allows login attempts below threshold',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/lockout.service.test.ts-2',
+          filePath: 'tests/auth/lockout.service.test.ts',
+          testName:
+            'REQ-104 lockout.service > AC-104-2: locks account after 5 consecutive failures',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/lockout.service.test.ts-3',
+          filePath: 'tests/auth/lockout.service.test.ts',
+          testName:
+            'REQ-104 lockout.service > AC-104-3: resets failure counter on successful login',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/password.validator.test.ts-2',
+          filePath: 'tests/auth/password.validator.test.ts',
+          testName:
+            'REQ-101 validatePassword > AC-101-2: throws WeakPasswordError for passwords shorter than 10 characters',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/password.validator.test.ts-3',
+          filePath: 'tests/auth/password.validator.test.ts',
+          testName:
+            'REQ-101 validatePassword > AC-101-3: throws WeakPasswordError when special characters are missing',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      status: 'needs_human_review',
+    },
+    {
+      id: 'REQ-103',
+      title: 'Multi-factor authentication verification',
+      body: 'Users with multi-factor authentication enabled must submit a valid 6-digit TOTP code during session verification. Invalid or replayed codes must be rejected.\n\n### Acceptance criteria\n\n- AC-103-1: `verifyMfaCode` accepts valid 6-digit TOTP codes for the provisioned secret.\n- AC-103-2: `verifyMfaCode` returns false for invalid, expired, or non-numeric tokens.\n- AC-103-3: Generated MFA secrets must conform to base32 encoding standards.\n\n**Source:** `src/auth/mfa.service.ts`\n\n---',
+      acceptanceCriteria: [
+        {
+          id: 'AC-103-1',
+          requirementId: 'REQ-103',
+          text: '`verifyMfaCode` accepts valid 6-digit TOTP codes for the provisioned secret.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 42,
+          },
+        },
+        {
+          id: 'AC-103-2',
+          requirementId: 'REQ-103',
+          text: '`verifyMfaCode` returns false for invalid, expired, or non-numeric tokens.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 43,
+          },
+        },
+        {
+          id: 'AC-103-3',
+          requirementId: 'REQ-103',
+          text: 'Generated MFA secrets must conform to base32 encoding standards.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 44,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 36,
+      },
+      tags: [],
+      linkedCodeArtifacts: [
+        {
+          id: 'artifact-1',
+          filePath: 'src/auth/jwt.service.ts',
+          symbols: [
+            'JwtPayload',
+            'TokenExpiredError',
+            'VerifyTokenOptions',
+            'createToken',
+            'verifyToken',
+          ],
+          strength: 'moderate',
+          method: 'path_overlap',
+        },
+        {
+          id: 'artifact-2',
+          filePath: 'src/auth/mfa.service.ts',
+          symbols: ['MfaChallenge', 'MfaSecret', 'generateMfaSecret', 'verifyMfaCode'],
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+      ],
+      linkedTestArtifacts: [
+        {
+          id: 'test-tests/auth/jwt.service.test.ts-1',
+          filePath: 'tests/auth/jwt.service.test.ts',
+          testName:
+            'REQ-102 jwt.service > AC-102-1: generates an HS256 signed token with 15 minutes TTL',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/jwt.service.test.ts-2',
+          filePath: 'tests/auth/jwt.service.test.ts',
+          testName: 'REQ-102 jwt.service > AC-102-2: decodes and verifies a valid token payload',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/password.validator.test.ts-1',
+          filePath: 'tests/auth/password.validator.test.ts',
+          testName:
+            'REQ-101 validatePassword > AC-101-1: accepts strong password with uppercase, digit, and special symbol',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      status: 'needs_human_review',
+    },
+    {
+      id: 'REQ-104',
+      title: 'Account lockout on failed logins',
+      body: 'After 5 consecutive failed login attempts within a 15-minute window, the user account must be temporarily locked.\n\n### Acceptance criteria\n\n- AC-104-1: Accounts with fewer than 5 failed attempts allow continued login attempts.\n- AC-104-2: The 5th consecutive failure triggers `AccountLockedError` with unlock timestamp.\n- AC-104-3: A successful login resets the consecutive failure counter to zero.\n\n**Source:** `src/auth/lockout.service.ts`\n\n---',
+      acceptanceCriteria: [
+        {
+          id: 'AC-104-1',
+          requirementId: 'REQ-104',
+          text: 'Accounts with fewer than 5 failed attempts allow continued login attempts.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 56,
+          },
+        },
+        {
+          id: 'AC-104-2',
+          requirementId: 'REQ-104',
+          text: 'The 5th consecutive failure triggers `AccountLockedError` with unlock timestamp.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 57,
+          },
+        },
+        {
+          id: 'AC-104-3',
+          requirementId: 'REQ-104',
+          text: 'A successful login resets the consecutive failure counter to zero.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 58,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 50,
+      },
+      tags: [],
+      linkedCodeArtifacts: [
+        {
+          id: 'artifact-1',
+          filePath: 'src/auth/jwt.service.ts',
+          symbols: [
+            'JwtPayload',
+            'TokenExpiredError',
+            'VerifyTokenOptions',
+            'createToken',
+            'verifyToken',
+          ],
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      linkedTestArtifacts: [
+        {
+          id: 'test-tests/auth/jwt.service.test.ts-1',
+          filePath: 'tests/auth/jwt.service.test.ts',
+          testName:
+            'REQ-102 jwt.service > AC-102-1: generates an HS256 signed token with 15 minutes TTL',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/jwt.service.test.ts-2',
+          filePath: 'tests/auth/jwt.service.test.ts',
+          testName: 'REQ-102 jwt.service > AC-102-2: decodes and verifies a valid token payload',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/lockout.service.test.ts-1',
+          filePath: 'tests/auth/lockout.service.test.ts',
+          testName: 'REQ-104 lockout.service > AC-104-1: allows login attempts below threshold',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/auth/lockout.service.test.ts-2',
+          filePath: 'tests/auth/lockout.service.test.ts',
+          testName:
+            'REQ-104 lockout.service > AC-104-2: locks account after 5 consecutive failures',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/auth/lockout.service.test.ts-3',
+          filePath: 'tests/auth/lockout.service.test.ts',
+          testName:
+            'REQ-104 lockout.service > AC-104-3: resets failure counter on successful login',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+      ],
+      status: 'missing_evidence',
+    },
+    {
+      id: 'REQ-105',
+      title: 'Auth configuration validation',
+      body: 'The authentication configuration module must validate required environment variables on startup and reject blank or default development secrets in non-development environments.\n\n### Acceptance criteria\n\n- AC-105-1: Loads configuration with valid JWT secret, issuer, and token TTL values.\n- AC-105-2: Throws `ConfigValidationError` if `JWT_SECRET` is shorter than 32 characters.\n- AC-105-3: Validates MFA configuration parameters when `mfaEnabled` is set to `true`.\n\n**Source:** `src/config/auth.config.ts`, `docs/api.md`',
+      acceptanceCriteria: [
+        {
+          id: 'AC-105-1',
+          requirementId: 'REQ-105',
+          text: 'Loads configuration with valid JWT secret, issuer, and token TTL values.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 70,
+          },
+        },
+        {
+          id: 'AC-105-2',
+          requirementId: 'REQ-105',
+          text: 'Throws `ConfigValidationError` if `JWT_SECRET` is shorter than 32 characters.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 71,
+          },
+        },
+        {
+          id: 'AC-105-3',
+          requirementId: 'REQ-105',
+          text: 'Validates MFA configuration parameters when `mfaEnabled` is set to `true`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 72,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 64,
+      },
+      tags: [],
+      linkedCodeArtifacts: [
+        {
+          id: 'artifact-1',
+          filePath: 'src/auth/jwt.service.ts',
+          symbols: [
+            'JwtPayload',
+            'TokenExpiredError',
+            'VerifyTokenOptions',
+            'createToken',
+            'verifyToken',
+          ],
+          strength: 'moderate',
+          method: 'path_overlap',
+        },
+        {
+          id: 'artifact-2',
+          filePath: 'src/auth/mfa.service.ts',
+          symbols: ['MfaChallenge', 'MfaSecret', 'generateMfaSecret', 'verifyMfaCode'],
+          strength: 'moderate',
+          method: 'path_overlap',
+        },
+        {
+          id: 'artifact-3',
+          filePath: 'src/config/auth.config.ts',
+          symbols: ['AuthConfig', 'ConfigValidationError', 'DEFAULT_AUTH_CONFIG', 'loadAuthConfig'],
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+      ],
+      linkedTestArtifacts: [
+        {
+          id: 'test-tests/auth/jwt.service.test.ts-1',
+          filePath: 'tests/auth/jwt.service.test.ts',
+          testName:
+            'REQ-102 jwt.service > AC-102-1: generates an HS256 signed token with 15 minutes TTL',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/jwt.service.test.ts-2',
+          filePath: 'tests/auth/jwt.service.test.ts',
+          testName: 'REQ-102 jwt.service > AC-102-2: decodes and verifies a valid token payload',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/password.validator.test.ts-1',
+          filePath: 'tests/auth/password.validator.test.ts',
+          testName:
+            'REQ-101 validatePassword > AC-101-1: accepts strong password with uppercase, digit, and special symbol',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/password.validator.test.ts-2',
+          filePath: 'tests/auth/password.validator.test.ts',
+          testName:
+            'REQ-101 validatePassword > AC-101-2: throws WeakPasswordError for passwords shorter than 10 characters',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/auth/password.validator.test.ts-3',
+          filePath: 'tests/auth/password.validator.test.ts',
+          testName:
+            'REQ-101 validatePassword > AC-101-3: throws WeakPasswordError when special characters are missing',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      status: 'needs_human_review',
+    },
+  ],
+  evidenceLinks: [
+    {
+      id: 'link-000001',
+      fromType: 'requirement',
+      fromId: 'REQ-101',
+      toType: 'changed_artifact',
+      toId: 'artifact-3',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation:
+        'Keyword overlap [error, validation] between requirement and src/config/auth.config.ts',
+      sourceLocation: {
+        filePath: 'src/config/auth.config.ts',
+      },
+    },
+    {
+      id: 'link-000002',
+      fromType: 'requirement',
+      fromId: 'REQ-102',
+      toType: 'changed_artifact',
+      toId: 'artifact-1',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation: 'REQ-102 is explicitly mentioned in src/auth/jwt.service.ts',
+      sourceLocation: {
+        filePath: 'src/auth/jwt.service.ts',
+      },
+    },
+    {
+      id: 'link-000003',
+      fromType: 'requirement',
+      fromId: 'REQ-102',
+      toType: 'changed_artifact',
+      toId: 'artifact-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation:
+        'Keyword overlap [service, verify] between requirement and src/auth/mfa.service.ts',
+      sourceLocation: {
+        filePath: 'src/auth/mfa.service.ts',
+      },
+    },
+    {
+      id: 'link-000004',
+      fromType: 'requirement',
+      fromId: 'REQ-103',
+      toType: 'changed_artifact',
+      toId: 'artifact-1',
+      method: 'path_overlap',
+      strength: 'moderate',
+      explanation:
+        'Requirement title words [authentication] overlap with path segments in src/auth/jwt.service.ts',
+      sourceLocation: {
+        filePath: 'src/auth/jwt.service.ts',
+      },
+    },
+    {
+      id: 'link-000005',
+      fromType: 'requirement',
+      fromId: 'REQ-103',
+      toType: 'changed_artifact',
+      toId: 'artifact-2',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation: 'REQ-103 is explicitly mentioned in src/auth/mfa.service.ts',
+      sourceLocation: {
+        filePath: 'src/auth/mfa.service.ts',
+      },
+    },
+    {
+      id: 'link-000006',
+      fromType: 'requirement',
+      fromId: 'REQ-104',
+      toType: 'changed_artifact',
+      toId: 'artifact-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation:
+        'Keyword overlap [error, service] between requirement and src/auth/jwt.service.ts',
+      sourceLocation: {
+        filePath: 'src/auth/jwt.service.ts',
+      },
+    },
+    {
+      id: 'link-000007',
+      fromType: 'requirement',
+      fromId: 'REQ-105',
+      toType: 'changed_artifact',
+      toId: 'artifact-1',
+      method: 'path_overlap',
+      strength: 'moderate',
+      explanation:
+        'Requirement title words [auth] overlap with path segments in src/auth/jwt.service.ts',
+      sourceLocation: {
+        filePath: 'src/auth/jwt.service.ts',
+      },
+    },
+    {
+      id: 'link-000008',
+      fromType: 'requirement',
+      fromId: 'REQ-105',
+      toType: 'changed_artifact',
+      toId: 'artifact-2',
+      method: 'path_overlap',
+      strength: 'moderate',
+      explanation:
+        'Requirement title words [auth] overlap with path segments in src/auth/mfa.service.ts',
+      sourceLocation: {
+        filePath: 'src/auth/mfa.service.ts',
+      },
+    },
+    {
+      id: 'link-000009',
+      fromType: 'requirement',
+      fromId: 'REQ-105',
+      toType: 'changed_artifact',
+      toId: 'artifact-3',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation: 'REQ-105 is explicitly mentioned in src/config/auth.config.ts',
+      sourceLocation: {
+        filePath: 'src/config/auth.config.ts',
+      },
+    },
+    {
+      id: 'link-000010',
+      fromType: 'requirement',
+      fromId: 'REQ-101',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/lockout.service.test.ts-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [account, error] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/lockout.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000011',
+      fromType: 'requirement',
+      fromId: 'REQ-101',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/lockout.service.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [account, error] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/lockout.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000012',
+      fromType: 'requirement',
+      fromId: 'REQ-101',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/lockout.service.test.ts-3',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [account, error] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/lockout.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000013',
+      fromType: 'requirement',
+      fromId: 'REQ-101',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/password.validator.test.ts-1',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-101 validatePassword > AC-101-1: accepts strong password with uppercase, digit, and special symbol" in tests/auth/password.validator.test.ts explicitly references REQ-101',
+      sourceLocation: {
+        filePath: 'tests/auth/password.validator.test.ts',
+      },
+    },
+    {
+      id: 'link-000014',
+      fromType: 'requirement',
+      fromId: 'REQ-101',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/password.validator.test.ts-2',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-101 validatePassword > AC-101-2: throws WeakPasswordError for passwords shorter than 10 characters" in tests/auth/password.validator.test.ts explicitly references REQ-101',
+      sourceLocation: {
+        filePath: 'tests/auth/password.validator.test.ts',
+      },
+    },
+    {
+      id: 'link-000015',
+      fromType: 'requirement',
+      fromId: 'REQ-101',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/password.validator.test.ts-3',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-101 validatePassword > AC-101-3: throws WeakPasswordError when special characters are missing" in tests/auth/password.validator.test.ts explicitly references REQ-101',
+      sourceLocation: {
+        filePath: 'tests/auth/password.validator.test.ts',
+      },
+    },
+    {
+      id: 'link-000016',
+      fromType: 'requirement',
+      fromId: 'REQ-102',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-1',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-102 jwt.service > AC-102-1: generates an HS256 signed token with 15 minutes TTL" in tests/auth/jwt.service.test.ts explicitly references REQ-102',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000017',
+      fromType: 'requirement',
+      fromId: 'REQ-102',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-2',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-102 jwt.service > AC-102-2: decodes and verifies a valid token payload" in tests/auth/jwt.service.test.ts explicitly references REQ-102',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000018',
+      fromType: 'requirement',
+      fromId: 'REQ-102',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/lockout.service.test.ts-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, service] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/lockout.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000019',
+      fromType: 'requirement',
+      fromId: 'REQ-102',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/lockout.service.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, service] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/lockout.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000020',
+      fromType: 'requirement',
+      fromId: 'REQ-102',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/lockout.service.test.ts-3',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, service] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/lockout.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000021',
+      fromType: 'requirement',
+      fromId: 'REQ-102',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/password.validator.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, throws] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/password.validator.test.ts',
+      },
+    },
+    {
+      id: 'link-000022',
+      fromType: 'requirement',
+      fromId: 'REQ-102',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/password.validator.test.ts-3',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, throws] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/password.validator.test.ts',
+      },
+    },
+    {
+      id: 'link-000023',
+      fromType: 'requirement',
+      fromId: 'REQ-103',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [expired, service, verify] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000024',
+      fromType: 'requirement',
+      fromId: 'REQ-103',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [expired, service, valid] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000025',
+      fromType: 'requirement',
+      fromId: 'REQ-103',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/password.validator.test.ts-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [accepts, digit] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/password.validator.test.ts',
+      },
+    },
+    {
+      id: 'link-000026',
+      fromType: 'requirement',
+      fromId: 'REQ-104',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, service] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000027',
+      fromType: 'requirement',
+      fromId: 'REQ-104',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, service] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000028',
+      fromType: 'requirement',
+      fromId: 'REQ-104',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/lockout.service.test.ts-1',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-104 lockout.service > AC-104-1: allows login attempts below threshold" in tests/auth/lockout.service.test.ts explicitly references REQ-104',
+      sourceLocation: {
+        filePath: 'tests/auth/lockout.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000029',
+      fromType: 'requirement',
+      fromId: 'REQ-104',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/lockout.service.test.ts-2',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-104 lockout.service > AC-104-2: locks account after 5 consecutive failures" in tests/auth/lockout.service.test.ts explicitly references REQ-104',
+      sourceLocation: {
+        filePath: 'tests/auth/lockout.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000030',
+      fromType: 'requirement',
+      fromId: 'REQ-104',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/lockout.service.test.ts-3',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-104 lockout.service > AC-104-3: resets failure counter on successful login" in tests/auth/lockout.service.test.ts explicitly references REQ-104',
+      sourceLocation: {
+        filePath: 'tests/auth/lockout.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000031',
+      fromType: 'requirement',
+      fromId: 'REQ-105',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, jwt, token] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000032',
+      fromType: 'requirement',
+      fromId: 'REQ-105',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, jwt, token] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000033',
+      fromType: 'requirement',
+      fromId: 'REQ-105',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/password.validator.test.ts-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, validate] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/password.validator.test.ts',
+      },
+    },
+    {
+      id: 'link-000034',
+      fromType: 'requirement',
+      fromId: 'REQ-105',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/password.validator.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [characters, error, shorter] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/password.validator.test.ts',
+      },
+    },
+    {
+      id: 'link-000035',
+      fromType: 'requirement',
+      fromId: 'REQ-105',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/password.validator.test.ts-3',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [characters, error, throws] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/auth/password.validator.test.ts',
+      },
+    },
+    {
+      id: 'link-000036',
+      fromType: 'changed_artifact',
+      fromId: 'artifact-1',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-1',
+      method: 'symbol_overlap',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-102 jwt.service > AC-102-1: generates an HS256 signed token with 15 minutes TTL" references symbols from src/auth/jwt.service.ts',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000037',
+      fromType: 'changed_artifact',
+      fromId: 'artifact-1',
+      toType: 'test_artifact',
+      toId: 'test-tests/auth/jwt.service.test.ts-2',
+      method: 'symbol_overlap',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-102 jwt.service > AC-102-2: decodes and verifies a valid token payload" references symbols from src/auth/jwt.service.ts',
+      sourceLocation: {
+        filePath: 'tests/auth/jwt.service.test.ts',
+      },
+    },
+  ],
+};
+
+export const PAYMENTS_DATASET: ScenarioDataset = {
+  bundleId: 'payments',
+  name: 'Payment Gateway & Webhooks',
+  description: 'Idempotent charge execution, webhook HMAC verification, and refund workflows.',
+  run: {
+    id: 'd8a25e79-1a7b-4bdb-88d5-c1706b36f496',
+    name: 'Payment Gateway & Webhook Analysis',
+    status: 'completed',
+    contentFingerprint: '8053b31324f8bbd7759c3b6456217c65442db84a707b1b1e124637a89797302a',
+    bundleId: 'payments',
+    createdAt: '2026-09-27T12:41:36.789Z',
+    completedAt: '2026-09-27T12:41:36.789Z',
+    summary: {
+      totalRequirements: 5,
+      totalChangedArtifacts: 3,
+      totalTestArtifacts: 6,
+      totalEvidenceLinks: 22,
+      totalFindings: 12,
+      findingsBySeverity: {
+        critical: 0,
+        high: 6,
+        medium: 3,
+        low: 3,
+        informational: 0,
+      },
+      findingsByStatus: {
+        verified: 0,
+        partial: 0,
+        missing_evidence: 6,
+        needs_human_review: 6,
+        informational: 0,
+      },
+      needsHumanReviewCount: 6,
+    },
+  },
+  changedArtifacts: [
+    {
+      id: 'artifact-1',
+      filePath: 'src/payments/charge.service.ts',
+      changeType: 'modified',
+      symbols: ['ChargeRequest', 'ChargeResult', 'InvalidAmountError', 'createCharge'],
+      addedLines: 1,
+      deletedLines: 0,
+      hunks: [
+        {
+          oldStart: 10,
+          oldCount: 6,
+          newStart: 10,
+          newCount: 7,
+          lines: [
+            '   amountCents: number;',
+            '   currency: string;',
+            '   customerId: string;',
+            '+  idempotencyKey: string;',
+            ' }',
+            ' ',
+            ' export interface ChargeResult {',
+          ],
+        },
+      ],
+      isPublicApi: true,
+      isConfig: false,
+      isSchema: false,
+      isTest: false,
+      isDocumentation: false,
+    },
+    {
+      id: 'artifact-2',
+      filePath: 'src/refunds/refund.service.ts',
+      changeType: 'added',
+      symbols: [
+        'ChargeNotRefundableError',
+        'ExceededRefundAmountError',
+        'RefundRequest',
+        'RefundResult',
+        'processRefund',
+      ],
+      addedLines: 41,
+      deletedLines: 0,
+      hunks: [
+        {
+          oldStart: 0,
+          oldCount: 0,
+          newStart: 1,
+          newCount: 38,
+          lines: [
+            '+// Synthetic fixture — not executable by ChangeProof',
+            '+// REQ-203 — Refund processing for settled charges',
+            '+// NOTE: Added in PR without unit tests (triggers TEST_GAP_ON_CHANGED_SYMBOL)',
+            '+',
+            '+export class ChargeNotRefundableError extends Error {',
+            '+  constructor(message: string) {',
+            '+    super(message);',
+            "+    this.name = 'ChargeNotRefundableError';",
+            '+  }',
+            '+}',
+            '+',
+            '+export class ExceededRefundAmountError extends Error {',
+            '+  constructor(message: string) {',
+            '+    super(message);',
+            "+    this.name = 'ExceededRefundAmountError';",
+            '+  }',
+            '+}',
+            '+',
+            '+export interface RefundRequest {',
+            '+  chargeId: string;',
+            '+  amountCents: number;',
+            '+  reason?: string;',
+            '+}',
+            '+',
+            '+export interface RefundResult {',
+            '+  refundId: string;',
+            '+  chargeId: string;',
+            '+  amountCents: number;',
+            "+  status: 'succeeded' | 'failed';",
+            '+  processedAt: string;',
+            '+}',
+            '+',
+            '+export function processRefund(request: RefundRequest): RefundResult {',
+            '+  return {',
+            '+    refundId: `re_${Date.now()}`,',
+            '+    chargeId: request.chargeId,',
+            '+    amountCents: request.amountCents,',
+            "+    status: 'succeeded',",
+            '+    processedAt: new Date().toISOString(),',
+            '+  };',
+            '+}',
+          ],
+        },
+      ],
+      isPublicApi: true,
+      isConfig: false,
+      isSchema: false,
+      isTest: false,
+      isDocumentation: false,
+    },
+    {
+      id: 'artifact-3',
+      filePath: 'src/utils/currency.helper.ts',
+      changeType: 'added',
+      symbols: ['SupportedCurrency', 'formatCurrencyAmount'],
+      addedLines: 19,
+      deletedLines: 0,
+      hunks: [
+        {
+          oldStart: 0,
+          oldCount: 0,
+          newStart: 1,
+          newCount: 18,
+          lines: [
+            '+// Synthetic fixture — not executable by ChangeProof',
+            '+// NOTE: Added in PR as internal refactor utility without an explicit product requirement.',
+            '+// Triggers CODE_WITHOUT_REQ in ChangeProof analysis.',
+            '+',
+            "+export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'CAD';",
+            '+',
+            "+export function formatCurrencyAmount(amountCents: number, currency: SupportedCurrency = 'USD'): string {",
+            '+  const units = (amountCents / 100).toFixed(2);',
+            '+  switch (currency) {',
+            "+    case 'USD':",
+            '+      return `$${units}`;',
+            "+    case 'EUR':",
+            '+      return `€${units}`;',
+            "+    case 'GBP':",
+            '+      return `£${units}`;',
+            "+    case 'CAD':",
+            '+      return `CA$${units}`;',
+            '+  }',
+            '+}',
+            '',
+          ],
+        },
+      ],
+      isPublicApi: false,
+      isConfig: false,
+      isSchema: false,
+      isTest: false,
+      isDocumentation: false,
+    },
+  ],
+  testArtifacts: [
+    {
+      id: 'test-tests/payments/charge.service.test.ts-1',
+      filePath: 'tests/payments/charge.service.test.ts',
+      testName: 'REQ-201 createCharge > AC-201-1: creates a new charge with unique idempotencyKey',
+      referencedSymbols: ['InvalidAmountError', 'createCharge', 'describe', 'expect', 'it'],
+      referencedRequirementIds: ['REQ-201'],
+    },
+    {
+      id: 'test-tests/payments/charge.service.test.ts-2',
+      filePath: 'tests/payments/charge.service.test.ts',
+      testName:
+        'REQ-201 createCharge > AC-201-2: returns cached charge for duplicate idempotencyKey',
+      referencedSymbols: ['InvalidAmountError', 'createCharge', 'describe', 'expect', 'it'],
+      referencedRequirementIds: ['REQ-201'],
+    },
+    {
+      id: 'test-tests/payments/charge.service.test.ts-3',
+      filePath: 'tests/payments/charge.service.test.ts',
+      testName:
+        'REQ-201 createCharge > AC-201-3: throws InvalidAmountError for non-positive amount',
+      referencedSymbols: ['InvalidAmountError', 'createCharge', 'describe', 'expect', 'it'],
+      referencedRequirementIds: ['REQ-201'],
+    },
+    {
+      id: 'test-tests/payments/fee.calculator.test.ts-1',
+      filePath: 'tests/payments/fee.calculator.test.ts',
+      testName: 'REQ-204 fee.calculator > AC-204-1: computes 2.9% + 30¢ fee accurately',
+      referencedSymbols: ['calculatePaymentFee', 'describe', 'expect', 'it'],
+      referencedRequirementIds: ['REQ-204'],
+    },
+    {
+      id: 'test-tests/webhooks/webhook.verifier.test.ts-1',
+      filePath: 'tests/webhooks/webhook.verifier.test.ts',
+      testName:
+        'REQ-202 verifyWebhookSignature > AC-202-1: returns true for valid HMAC-SHA256 signature',
+      referencedSymbols: ['describe', 'expect', 'it', 'verifyWebhookSignature'],
+      referencedRequirementIds: ['REQ-202'],
+    },
+    {
+      id: 'test-tests/webhooks/webhook.verifier.test.ts-2',
+      filePath: 'tests/webhooks/webhook.verifier.test.ts',
+      testName: 'REQ-202 verifyWebhookSignature > AC-202-2: returns false for invalid signature',
+      referencedSymbols: ['describe', 'expect', 'it', 'verifyWebhookSignature'],
+      referencedRequirementIds: ['REQ-202'],
+    },
+  ],
+  findings: [
+    {
+      id: 'finding-000001',
+      ruleId: 'REQ_WITHOUT_CODE',
+      severity: 'high',
+      status: 'missing_evidence',
+      title: 'REQ-202 has no implementation evidence in the changed files',
+      explanation:
+        'Requirement "Webhook cryptographic signature verification" has no changed file linked with strong or moderate match strength. Either the implementation is not in this diff, or the traceability is missing.',
+      requirementIds: ['REQ-202'],
+      changedArtifactIds: [],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Verify that the implementation of REQ-202 is included in this diff. If out-of-scope, document the decision.',
+    },
+    {
+      id: 'finding-000002',
+      ruleId: 'REQ_WITHOUT_CODE',
+      severity: 'high',
+      status: 'missing_evidence',
+      title: 'REQ-204 has no implementation evidence in the changed files',
+      explanation:
+        'Requirement "Processing fee calculation" has no changed file linked with strong or moderate match strength. Either the implementation is not in this diff, or the traceability is missing.',
+      requirementIds: ['REQ-204'],
+      changedArtifactIds: [],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Verify that the implementation of REQ-204 is included in this diff. If out-of-scope, document the decision.',
+    },
+    {
+      id: 'finding-000003',
+      ruleId: 'REQ_WITHOUT_CODE',
+      severity: 'high',
+      status: 'missing_evidence',
+      title: 'REQ-205 has no implementation evidence in the changed files',
+      explanation:
+        'Requirement "Outbound webhook event dispatch" has no changed file linked with strong or moderate match strength. Either the implementation is not in this diff, or the traceability is missing.',
+      requirementIds: ['REQ-205'],
+      changedArtifactIds: [],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Verify that the implementation of REQ-205 is included in this diff. If out-of-scope, document the decision.',
+    },
+    {
+      id: 'finding-000004',
+      ruleId: 'CODE_WITHOUT_REQ',
+      severity: 'medium',
+      status: 'needs_human_review',
+      title: 'src/utils/currency.helper.ts has changes with no requirement link',
+      explanation:
+        'Changed file "src/utils/currency.helper.ts" (19 added, 0 deleted lines) has no requirement linked to it. Verify this change is intentional or document the rationale.',
+      requirementIds: [],
+      changedArtifactIds: ['artifact-3'],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Link this change to a requirement or document it as an intentional refactor/chore.',
+    },
+    {
+      id: 'finding-000005',
+      ruleId: 'REQ_WITHOUT_TEST',
+      severity: 'high',
+      status: 'missing_evidence',
+      title: 'REQ-205 has no test coverage',
+      explanation:
+        'Requirement "Outbound webhook event dispatch" has no test artifact linked to it. The change may lack verification.',
+      requirementIds: ['REQ-205'],
+      changedArtifactIds: [],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Add tests covering the acceptance criteria for REQ-205 or explicitly document why tests are not applicable.',
+    },
+    {
+      id: 'finding-000006',
+      ruleId: 'PUBLIC_API_CHANGED',
+      severity: 'medium',
+      status: 'needs_human_review',
+      title: 'Public API changed: src/payments/charge.service.ts',
+      explanation:
+        'The file "src/payments/charge.service.ts" contains exported symbols [ChargeRequest, ChargeResult, InvalidAmountError, createCharge] that were changed. Public API changes may affect callers. Linked requirements: REQ-201, REQ-202, REQ-203.',
+      requirementIds: ['REQ-201', 'REQ-202', 'REQ-203'],
+      changedArtifactIds: ['artifact-1'],
+      testArtifactIds: [],
+      evidenceLinkIds: ['link-000001', 'link-000003', 'link-000004'],
+      matchStrength: 'moderate',
+      recommendedAction:
+        'Review the public API change in "src/payments/charge.service.ts". Update documentation and callers if necessary.',
+    },
+    {
+      id: 'finding-000007',
+      ruleId: 'PUBLIC_API_CHANGED',
+      severity: 'medium',
+      status: 'needs_human_review',
+      title: 'Public API changed: src/refunds/refund.service.ts',
+      explanation:
+        'The file "src/refunds/refund.service.ts" contains exported symbols [ChargeNotRefundableError, ExceededRefundAmountError, RefundRequest, RefundResult, processRefund] that were changed. Public API changes may affect callers. Linked requirements: REQ-201, REQ-203, REQ-205.',
+      requirementIds: ['REQ-201', 'REQ-203', 'REQ-205'],
+      changedArtifactIds: ['artifact-2'],
+      testArtifactIds: [],
+      evidenceLinkIds: ['link-000002', 'link-000005', 'link-000006'],
+      matchStrength: 'moderate',
+      recommendedAction:
+        'Review the public API change in "src/refunds/refund.service.ts". Update documentation and callers if necessary.',
+    },
+    {
+      id: 'finding-000008',
+      ruleId: 'TEST_GAP_ON_CHANGED_SYMBOL',
+      severity: 'high',
+      status: 'missing_evidence',
+      title: 'Changed symbols in src/refunds/refund.service.ts have no test coverage',
+      explanation:
+        'Symbols [ChargeNotRefundableError, ExceededRefundAmountError, RefundRequest, RefundResult, processRefund] in "src/refunds/refund.service.ts" were changed but no test references them. Missing test coverage on changed behavior is a risk.',
+      requirementIds: [],
+      changedArtifactIds: ['artifact-2'],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Add tests covering: ChargeNotRefundableError, ExceededRefundAmountError, RefundRequest in "src/refunds/refund.service.ts".',
+    },
+    {
+      id: 'finding-000009',
+      ruleId: 'TEST_GAP_ON_CHANGED_SYMBOL',
+      severity: 'high',
+      status: 'missing_evidence',
+      title: 'Changed symbols in src/utils/currency.helper.ts have no test coverage',
+      explanation:
+        'Symbols [SupportedCurrency, formatCurrencyAmount] in "src/utils/currency.helper.ts" were changed but no test references them. Missing test coverage on changed behavior is a risk.',
+      requirementIds: [],
+      changedArtifactIds: ['artifact-3'],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Add tests covering: SupportedCurrency, formatCurrencyAmount in "src/utils/currency.helper.ts".',
+    },
+    {
+      id: 'finding-000010',
+      ruleId: 'DOC_STALE_OR_MISSING',
+      severity: 'low',
+      status: 'needs_human_review',
+      title: 'Changed symbols in src/payments/charge.service.ts may not be documented',
+      explanation:
+        'Symbols [ChargeRequest, ChargeResult, InvalidAmountError] changed in "src/payments/charge.service.ts" do not appear in any documentation file. Documentation may be stale or missing.',
+      requirementIds: ['REQ-201', 'REQ-202', 'REQ-203'],
+      changedArtifactIds: ['artifact-1'],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'weak',
+      recommendedAction:
+        'Review documentation for "src/payments/charge.service.ts" and update as needed.',
+    },
+    {
+      id: 'finding-000011',
+      ruleId: 'DOC_STALE_OR_MISSING',
+      severity: 'low',
+      status: 'needs_human_review',
+      title: 'Changed symbols in src/refunds/refund.service.ts may not be documented',
+      explanation:
+        'Symbols [ChargeNotRefundableError, ExceededRefundAmountError, RefundRequest] changed in "src/refunds/refund.service.ts" do not appear in any documentation file. Documentation may be stale or missing.',
+      requirementIds: ['REQ-201', 'REQ-203', 'REQ-205'],
+      changedArtifactIds: ['artifact-2'],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'weak',
+      recommendedAction:
+        'Review documentation for "src/refunds/refund.service.ts" and update as needed.',
+    },
+    {
+      id: 'finding-000012',
+      ruleId: 'DOC_STALE_OR_MISSING',
+      severity: 'low',
+      status: 'needs_human_review',
+      title: 'Changed symbols in src/utils/currency.helper.ts may not be documented',
+      explanation:
+        'Symbols [SupportedCurrency, formatCurrencyAmount] changed in "src/utils/currency.helper.ts" do not appear in any documentation file. Documentation may be stale or missing.',
+      requirementIds: [],
+      changedArtifactIds: ['artifact-3'],
+      testArtifactIds: [],
+      evidenceLinkIds: [],
+      matchStrength: 'none',
+      recommendedAction:
+        'Review documentation for "src/utils/currency.helper.ts" and update as needed.',
+    },
+  ],
+  decisions: [],
+  requirements: [
+    {
+      id: 'REQ-201',
+      title: 'Idempotent payment charge execution',
+      body: 'All payment charge requests must include an `idempotencyKey`. The charge service must cache charge responses for 24 hours. Repeating a charge with the same idempotency key must return the original transaction without issuing a duplicate bank charge.\n\n### Acceptance criteria\n\n- AC-201-1: Given a new idempotency key, `createCharge` issues a charge and returns a `settled` charge record.\n- AC-201-2: Given an existing idempotency key within 24 hours, `createCharge` returns the cached charge record.\n- AC-201-3: Given a charge request with non-positive amount, `createCharge` throws `InvalidAmountError`.\n\n**Source:** `src/payments/charge.service.ts`\n\n---',
+      acceptanceCriteria: [
+        {
+          id: 'AC-201-1',
+          requirementId: 'REQ-201',
+          text: 'Given a new idempotency key, `createCharge` issues a charge and returns a `settled` charge record.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 14,
+          },
+        },
+        {
+          id: 'AC-201-2',
+          requirementId: 'REQ-201',
+          text: 'Given an existing idempotency key within 24 hours, `createCharge` returns the cached charge record.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 15,
+          },
+        },
+        {
+          id: 'AC-201-3',
+          requirementId: 'REQ-201',
+          text: 'Given a charge request with non-positive amount, `createCharge` throws `InvalidAmountError`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 16,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 8,
+      },
+      tags: [],
+      linkedCodeArtifacts: [
+        {
+          id: 'artifact-1',
+          filePath: 'src/payments/charge.service.ts',
+          symbols: ['ChargeRequest', 'ChargeResult', 'InvalidAmountError', 'createCharge'],
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'artifact-2',
+          filePath: 'src/refunds/refund.service.ts',
+          symbols: [
+            'ChargeNotRefundableError',
+            'ExceededRefundAmountError',
+            'RefundRequest',
+            'RefundResult',
+            'processRefund',
+          ],
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      linkedTestArtifacts: [
+        {
+          id: 'test-tests/payments/charge.service.test.ts-1',
+          filePath: 'tests/payments/charge.service.test.ts',
+          testName:
+            'REQ-201 createCharge > AC-201-1: creates a new charge with unique idempotencyKey',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/payments/charge.service.test.ts-2',
+          filePath: 'tests/payments/charge.service.test.ts',
+          testName:
+            'REQ-201 createCharge > AC-201-2: returns cached charge for duplicate idempotencyKey',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/payments/charge.service.test.ts-3',
+          filePath: 'tests/payments/charge.service.test.ts',
+          testName:
+            'REQ-201 createCharge > AC-201-3: throws InvalidAmountError for non-positive amount',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/webhooks/webhook.verifier.test.ts-2',
+          filePath: 'tests/webhooks/webhook.verifier.test.ts',
+          testName:
+            'REQ-202 verifyWebhookSignature > AC-202-2: returns false for invalid signature',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      status: 'needs_human_review',
+    },
+    {
+      id: 'REQ-202',
+      title: 'Webhook cryptographic signature verification',
+      body: 'Inbound webhook events from payment networks must be signed using HMAC-SHA256 with the shared webhook secret. Unsigned or corrupted payloads must be rejected immediately before event processing.\n\n### Acceptance criteria\n\n- AC-202-1: Valid HMAC-SHA256 signature returns `true` from `verifyWebhookSignature`.\n- AC-202-2: Missing or invalid signature returns `false` or throws `InvalidSignatureError`.\n- AC-202-3: Signature timestamp must not drift by more than 300 seconds from current time.\n\n**Source:** `src/webhooks/webhook.verifier.ts`\n\n---',
+      acceptanceCriteria: [
+        {
+          id: 'AC-202-1',
+          requirementId: 'REQ-202',
+          text: 'Valid HMAC-SHA256 signature returns `true` from `verifyWebhookSignature`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 28,
+          },
+        },
+        {
+          id: 'AC-202-2',
+          requirementId: 'REQ-202',
+          text: 'Missing or invalid signature returns `false` or throws `InvalidSignatureError`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 29,
+          },
+        },
+        {
+          id: 'AC-202-3',
+          requirementId: 'REQ-202',
+          text: 'Signature timestamp must not drift by more than 300 seconds from current time.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 30,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 22,
+      },
+      tags: [],
+      linkedCodeArtifacts: [
+        {
+          id: 'artifact-1',
+          filePath: 'src/payments/charge.service.ts',
+          symbols: ['ChargeRequest', 'ChargeResult', 'InvalidAmountError', 'createCharge'],
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      linkedTestArtifacts: [
+        {
+          id: 'test-tests/payments/charge.service.test.ts-1',
+          filePath: 'tests/payments/charge.service.test.ts',
+          testName:
+            'REQ-201 createCharge > AC-201-1: creates a new charge with unique idempotencyKey',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/payments/charge.service.test.ts-2',
+          filePath: 'tests/payments/charge.service.test.ts',
+          testName:
+            'REQ-201 createCharge > AC-201-2: returns cached charge for duplicate idempotencyKey',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/payments/charge.service.test.ts-3',
+          filePath: 'tests/payments/charge.service.test.ts',
+          testName:
+            'REQ-201 createCharge > AC-201-3: throws InvalidAmountError for non-positive amount',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/webhooks/webhook.verifier.test.ts-1',
+          filePath: 'tests/webhooks/webhook.verifier.test.ts',
+          testName:
+            'REQ-202 verifyWebhookSignature > AC-202-1: returns true for valid HMAC-SHA256 signature',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+        {
+          id: 'test-tests/webhooks/webhook.verifier.test.ts-2',
+          filePath: 'tests/webhooks/webhook.verifier.test.ts',
+          testName:
+            'REQ-202 verifyWebhookSignature > AC-202-2: returns false for invalid signature',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+      ],
+      status: 'missing_evidence',
+    },
+    {
+      id: 'REQ-203',
+      title: 'Refund processing for settled charges',
+      body: 'Settled payment charges can be refunded partially or in full. Total refunded amounts cannot exceed the original settled charge amount.\n\n### Acceptance criteria\n\n- AC-203-1: Valid refund amount creates a new refund record linked to the original charge.\n- AC-203-2: Attempting to refund an unsettled or failed charge throws `ChargeNotRefundableError`.\n- AC-203-3: Refund amount exceeding remaining balance throws `ExceededRefundAmountError`.\n\n**Source:** `src/refunds/refund.service.ts`\n\n---',
+      acceptanceCriteria: [
+        {
+          id: 'AC-203-1',
+          requirementId: 'REQ-203',
+          text: 'Valid refund amount creates a new refund record linked to the original charge.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 42,
+          },
+        },
+        {
+          id: 'AC-203-2',
+          requirementId: 'REQ-203',
+          text: 'Attempting to refund an unsettled or failed charge throws `ChargeNotRefundableError`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 43,
+          },
+        },
+        {
+          id: 'AC-203-3',
+          requirementId: 'REQ-203',
+          text: 'Refund amount exceeding remaining balance throws `ExceededRefundAmountError`.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 44,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 36,
+      },
+      tags: [],
+      linkedCodeArtifacts: [
+        {
+          id: 'artifact-1',
+          filePath: 'src/payments/charge.service.ts',
+          symbols: ['ChargeRequest', 'ChargeResult', 'InvalidAmountError', 'createCharge'],
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'artifact-2',
+          filePath: 'src/refunds/refund.service.ts',
+          symbols: [
+            'ChargeNotRefundableError',
+            'ExceededRefundAmountError',
+            'RefundRequest',
+            'RefundResult',
+            'processRefund',
+          ],
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+      ],
+      linkedTestArtifacts: [
+        {
+          id: 'test-tests/payments/charge.service.test.ts-1',
+          filePath: 'tests/payments/charge.service.test.ts',
+          testName:
+            'REQ-201 createCharge > AC-201-1: creates a new charge with unique idempotencyKey',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/payments/charge.service.test.ts-2',
+          filePath: 'tests/payments/charge.service.test.ts',
+          testName:
+            'REQ-201 createCharge > AC-201-2: returns cached charge for duplicate idempotencyKey',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+        {
+          id: 'test-tests/payments/charge.service.test.ts-3',
+          filePath: 'tests/payments/charge.service.test.ts',
+          testName:
+            'REQ-201 createCharge > AC-201-3: throws InvalidAmountError for non-positive amount',
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      status: 'needs_human_review',
+    },
+    {
+      id: 'REQ-204',
+      title: 'Processing fee calculation',
+      body: 'The transaction fee must be computed at 2.9% plus a fixed $0.30 fee and rounded to the nearest integer cent.\n\n### Acceptance criteria\n\n- AC-204-1: Computes percentage fee and fixed 30-cent fee correctly for integer cent inputs.\n- AC-204-2: Rounds fractional fees to the nearest whole cent using half-up rounding.\n\n**Source:** `src/payments/fee.calculator.ts`\n\n---',
+      acceptanceCriteria: [
+        {
+          id: 'AC-204-1',
+          requirementId: 'REQ-204',
+          text: 'Computes percentage fee and fixed 30-cent fee correctly for integer cent inputs.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 56,
+          },
+        },
+        {
+          id: 'AC-204-2',
+          requirementId: 'REQ-204',
+          text: 'Rounds fractional fees to the nearest whole cent using half-up rounding.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 57,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 50,
+      },
+      tags: [],
+      linkedCodeArtifacts: [],
+      linkedTestArtifacts: [
+        {
+          id: 'test-tests/payments/fee.calculator.test.ts-1',
+          filePath: 'tests/payments/fee.calculator.test.ts',
+          testName: 'REQ-204 fee.calculator > AC-204-1: computes 2.9% + 30¢ fee accurately',
+          strength: 'strong',
+          method: 'explicit_req_id',
+        },
+      ],
+      status: 'missing_evidence',
+    },
+    {
+      id: 'REQ-205',
+      title: 'Outbound webhook event dispatch',
+      body: 'When a payment charge or refund settles, the gateway must dispatch an outbound webhook event with retry backoff to all subscribed partner endpoints.\n\n### Acceptance criteria\n\n- AC-205-1: Dispatches `payment.succeeded` event on charge completion.\n- AC-205-2: Dispatches `refund.created` event on refund completion.\n\n**Source:** `src/webhooks/webhook.dispatcher.ts`',
+      acceptanceCriteria: [
+        {
+          id: 'AC-205-1',
+          requirementId: 'REQ-205',
+          text: 'Dispatches `payment.succeeded` event on charge completion.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 69,
+          },
+        },
+        {
+          id: 'AC-205-2',
+          requirementId: 'REQ-205',
+          text: 'Dispatches `refund.created` event on refund completion.',
+          sourceLocation: {
+            filePath: 'requirements.md',
+            startLine: 70,
+          },
+        },
+      ],
+      sourceLocation: {
+        filePath: 'requirements.md',
+        startLine: 63,
+      },
+      tags: [],
+      linkedCodeArtifacts: [
+        {
+          id: 'artifact-2',
+          filePath: 'src/refunds/refund.service.ts',
+          symbols: [
+            'ChargeNotRefundableError',
+            'ExceededRefundAmountError',
+            'RefundRequest',
+            'RefundResult',
+            'processRefund',
+          ],
+          strength: 'weak',
+          method: 'keyword_overlap',
+        },
+      ],
+      linkedTestArtifacts: [],
+      status: 'missing_evidence',
+    },
+  ],
+  evidenceLinks: [
+    {
+      id: 'link-000001',
+      fromType: 'requirement',
+      fromId: 'REQ-201',
+      toType: 'changed_artifact',
+      toId: 'artifact-1',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation: 'REQ-201 is explicitly mentioned in src/payments/charge.service.ts',
+      sourceLocation: {
+        filePath: 'src/payments/charge.service.ts',
+      },
+    },
+    {
+      id: 'link-000002',
+      fromType: 'requirement',
+      fromId: 'REQ-201',
+      toType: 'changed_artifact',
+      toId: 'artifact-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation:
+        'Keyword overlap [amount, charge, error] between requirement and src/refunds/refund.service.ts',
+      sourceLocation: {
+        filePath: 'src/refunds/refund.service.ts',
+      },
+    },
+    {
+      id: 'link-000003',
+      fromType: 'requirement',
+      fromId: 'REQ-202',
+      toType: 'changed_artifact',
+      toId: 'artifact-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation:
+        'Keyword overlap [error, invalid] between requirement and src/payments/charge.service.ts',
+      sourceLocation: {
+        filePath: 'src/payments/charge.service.ts',
+      },
+    },
+    {
+      id: 'link-000004',
+      fromType: 'requirement',
+      fromId: 'REQ-203',
+      toType: 'changed_artifact',
+      toId: 'artifact-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation:
+        'Keyword overlap [amount, charge, error] between requirement and src/payments/charge.service.ts',
+      sourceLocation: {
+        filePath: 'src/payments/charge.service.ts',
+      },
+    },
+    {
+      id: 'link-000005',
+      fromType: 'requirement',
+      fromId: 'REQ-203',
+      toType: 'changed_artifact',
+      toId: 'artifact-2',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation: 'REQ-203 is explicitly mentioned in src/refunds/refund.service.ts',
+      sourceLocation: {
+        filePath: 'src/refunds/refund.service.ts',
+      },
+    },
+    {
+      id: 'link-000006',
+      fromType: 'requirement',
+      fromId: 'REQ-205',
+      toType: 'changed_artifact',
+      toId: 'artifact-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation:
+        'Keyword overlap [charge, refund] between requirement and src/refunds/refund.service.ts',
+      sourceLocation: {
+        filePath: 'src/refunds/refund.service.ts',
+      },
+    },
+    {
+      id: 'link-000007',
+      fromType: 'requirement',
+      fromId: 'REQ-201',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-1',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-201 createCharge > AC-201-1: creates a new charge with unique idempotencyKey" in tests/payments/charge.service.test.ts explicitly references REQ-201',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000008',
+      fromType: 'requirement',
+      fromId: 'REQ-201',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-2',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-201 createCharge > AC-201-2: returns cached charge for duplicate idempotencyKey" in tests/payments/charge.service.test.ts explicitly references REQ-201',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000009',
+      fromType: 'requirement',
+      fromId: 'REQ-201',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-3',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-201 createCharge > AC-201-3: throws InvalidAmountError for non-positive amount" in tests/payments/charge.service.test.ts explicitly references REQ-201',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000010',
+      fromType: 'requirement',
+      fromId: 'REQ-201',
+      toType: 'test_artifact',
+      toId: 'test-tests/webhooks/webhook.verifier.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [invalid, returns] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/webhooks/webhook.verifier.test.ts',
+      },
+    },
+    {
+      id: 'link-000011',
+      fromType: 'requirement',
+      fromId: 'REQ-202',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, invalid] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000012',
+      fromType: 'requirement',
+      fromId: 'REQ-202',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, invalid, returns] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000013',
+      fromType: 'requirement',
+      fromId: 'REQ-202',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-3',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [error, invalid, throws] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000014',
+      fromType: 'requirement',
+      fromId: 'REQ-202',
+      toType: 'test_artifact',
+      toId: 'test-tests/webhooks/webhook.verifier.test.ts-1',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-202 verifyWebhookSignature > AC-202-1: returns true for valid HMAC-SHA256 signature" in tests/webhooks/webhook.verifier.test.ts explicitly references REQ-202',
+      sourceLocation: {
+        filePath: 'tests/webhooks/webhook.verifier.test.ts',
+      },
+    },
+    {
+      id: 'link-000015',
+      fromType: 'requirement',
+      fromId: 'REQ-202',
+      toType: 'test_artifact',
+      toId: 'test-tests/webhooks/webhook.verifier.test.ts-2',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-202 verifyWebhookSignature > AC-202-2: returns false for invalid signature" in tests/webhooks/webhook.verifier.test.ts explicitly references REQ-202',
+      sourceLocation: {
+        filePath: 'tests/webhooks/webhook.verifier.test.ts',
+      },
+    },
+    {
+      id: 'link-000016',
+      fromType: 'requirement',
+      fromId: 'REQ-203',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-1',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [amount, charge, creates] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000017',
+      fromType: 'requirement',
+      fromId: 'REQ-203',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-2',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [amount, charge, error] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000018',
+      fromType: 'requirement',
+      fromId: 'REQ-203',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-3',
+      method: 'keyword_overlap',
+      strength: 'weak',
+      explanation: 'Keyword overlap [amount, charge, error] between requirement and test',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000019',
+      fromType: 'requirement',
+      fromId: 'REQ-204',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/fee.calculator.test.ts-1',
+      method: 'explicit_req_id',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-204 fee.calculator > AC-204-1: computes 2.9% + 30¢ fee accurately" in tests/payments/fee.calculator.test.ts explicitly references REQ-204',
+      sourceLocation: {
+        filePath: 'tests/payments/fee.calculator.test.ts',
+      },
+    },
+    {
+      id: 'link-000020',
+      fromType: 'changed_artifact',
+      fromId: 'artifact-1',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-1',
+      method: 'symbol_overlap',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-201 createCharge > AC-201-1: creates a new charge with unique idempotencyKey" references symbols from src/payments/charge.service.ts',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000021',
+      fromType: 'changed_artifact',
+      fromId: 'artifact-1',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-2',
+      method: 'symbol_overlap',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-201 createCharge > AC-201-2: returns cached charge for duplicate idempotencyKey" references symbols from src/payments/charge.service.ts',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+    {
+      id: 'link-000022',
+      fromType: 'changed_artifact',
+      fromId: 'artifact-1',
+      toType: 'test_artifact',
+      toId: 'test-tests/payments/charge.service.test.ts-3',
+      method: 'symbol_overlap',
+      strength: 'strong',
+      explanation:
+        'Test "REQ-201 createCharge > AC-201-3: throws InvalidAmountError for non-positive amount" references symbols from src/payments/charge.service.ts',
+      sourceLocation: {
+        filePath: 'tests/payments/charge.service.test.ts',
+      },
+    },
+  ],
+};
+
+export const SCENARIO_DATASETS: Record<string, ScenarioDataset> = {
+  sample: {
+    bundleId: 'sample',
+    name: 'Checkout & Orders',
+    description:
+      'Synthetic TypeScript order-management project for ChangeProof demo. No real data.',
+    run: SAMPLE_RUN,
+    changedArtifacts: SAMPLE_CHANGED_ARTIFACTS,
+    testArtifacts: SAMPLE_TEST_ARTIFACTS,
+    findings: SAMPLE_FINDINGS,
+    decisions: SAMPLE_DECISIONS,
+    requirements: SAMPLE_TRACEABILITY,
+    evidenceLinks: SAMPLE_EVIDENCE_LINKS,
+  },
+  auth: AUTH_DATASET,
+  payments: PAYMENTS_DATASET,
+};
+
+export function getScenarioDataset(bundleId: string): ScenarioDataset {
+  const dataset = SCENARIO_DATASETS[bundleId];
+  if (dataset) return dataset;
+  const fallback = SCENARIO_DATASETS['sample'];
+  if (!fallback) {
+    throw new Error('Default sample dataset not found');
+  }
+  return fallback;
+}

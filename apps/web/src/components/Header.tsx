@@ -47,8 +47,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <div className="connection-pill" id="connection-status">
-            <span className={`status-dot ${isApiOnline ? 'online' : 'offline'}`} />
-            <span>{isApiOnline ? 'API Connected (Fastify)' : 'Demo Mode (Offline Fixture)'}</span>
+            <span className={`status-dot ${isApiOnline ? 'online' : 'standalone'}`} />
+            <span>{isApiOnline ? 'API Connected (Fastify)' : 'Standalone Demo Engine'}</span>
           </div>
         </div>
 

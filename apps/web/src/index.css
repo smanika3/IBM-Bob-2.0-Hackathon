@@ -189,7 +189,8 @@ body {
   height: 7px;
   border-radius: 50%;
 }
-.status-dot.online {
+.status-dot.online,
+.status-dot.standalone {
   background: #10b981;
   box-shadow: 0 0 8px #10b981;
 }
