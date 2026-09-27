@@ -1,6 +1,6 @@
 # Bob Session 02 — Synthetic Fixture
 
-**Date:** 2025  
+**Date:** 2026  
 **Handoff:** BOB_HANDOFF_02_SYNTHETIC_FIXTURE.md  
 **Mode:** Agent
 

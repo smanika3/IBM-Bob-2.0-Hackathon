@@ -1,6 +1,6 @@
 # Bob Session 01 — Foundation
 
-**Date:** 2025  
+**Date:** 2026  
 **Handoff:** BOB_HANDOFF_01_FOUNDATION.md  
 **Mode:** Agent
 
