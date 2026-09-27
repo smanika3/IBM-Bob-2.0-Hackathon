@@ -11,9 +11,6 @@ bob_sessions/
   session-01-foundation.md
   session-02-synthetic-fixture.md
   session-03-analysis-engine.md
-  session-04-api-storage.md
-  session-05-dashboard.md
-  session-06-validation-demo.md
 ```
 
 ## Privacy
