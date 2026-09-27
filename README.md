@@ -138,4 +138,4 @@ See [docs/demo-script.md](docs/demo-script.md) for the exact 3-minute presentati
 
 ## IBM Bob usage
 
-This project was built with IBM Bob 2.0. Task-session summaries are in `bob_sessions/`.
+This project was built with IBM Bob 2.0. Task-session summaries and IDE session screenshots are in [`bob_sessions/`](bob_sessions/README.md).
