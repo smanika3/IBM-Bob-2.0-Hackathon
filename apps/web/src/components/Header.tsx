@@ -98,9 +98,9 @@ export const Header: React.FC<HeaderProps> = ({
               cursor: 'pointer',
             }}
           >
-            <option value="sample">🛒 Checkout & Orders</option>
-            <option value="auth">🔐 Auth & Session Service</option>
-            <option value="payments">💳 Payment Gateway & Webhooks</option>
+            <option value="sample">Checkout & Orders</option>
+            <option value="auth">Auth & Session Service</option>
+            <option value="payments">Payment Gateway & Webhooks</option>
           </select>
 
           <button
