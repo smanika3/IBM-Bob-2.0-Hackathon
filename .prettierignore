@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+*.local
+coverage
+.pnpm-store
+bob_sessions/*.png
+bob_sessions/*.jpg
+pnpm-lock.yaml
+test-results
+playwright-report

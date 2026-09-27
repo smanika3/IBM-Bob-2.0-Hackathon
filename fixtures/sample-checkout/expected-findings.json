@@ -1,0 +1,98 @@
+{
+  "_comment": "Test oracle for ChangeProof deterministic analysis. Do not expose as public demo input.",
+  "_fixture": "fixtures/sample-checkout",
+  "_seededCases": [
+    "1. REQ-001: mostly verified (createOrder + cancelOrder + tests)",
+    "2. REQ-002: implementation evidence but no test for malformed rows (AC-002-3)",
+    "3. csv.exporter.ts: changed public export signature — PUBLIC_API_CHANGED",
+    "4. tax.calculator.ts: rounding method changed, docs/api.md not updated — DOC_STALE_OR_MISSING",
+    "5. REQ-005: no implementation evidence in changed files for admin restriction — REQ_WITHOUT_CODE",
+    "6. auth.middleware.ts ADMIN_ROLE_HEADER: no requirement links this symbol — CODE_WITHOUT_REQ",
+    "7. processBulkImport: changed symbol, no test — TEST_GAP_ON_CHANGED_SYMBOL",
+    "8. REQ-004: both TaxCalculator and tax.config reference 'tax' + 'rounding' — AMBIGUOUS_TRACEABILITY",
+    "9. requireAuthenticated: changed but low-risk, must not produce high-severity finding"
+  ],
+  "expectedFindings": [
+    {
+      "ruleId": "REQ_WITHOUT_CODE",
+      "severity": "high",
+      "status": "missing_evidence",
+      "requirementIds": ["REQ-005"],
+      "changedArtifactIds": [],
+      "matchStrength": "none",
+      "evidencePaths": [],
+      "explanation": "REQ-005 specifies admin-only bulk import but no changed file contains explicit implementation evidence linking to REQ-005 admin enforcement."
+    },
+    {
+      "ruleId": "CODE_WITHOUT_REQ",
+      "severity": "medium",
+      "status": "needs_human_review",
+      "requirementIds": [],
+      "changedArtifactIds": ["src/auth/auth.middleware.ts"],
+      "matchStrength": "none",
+      "evidencePaths": ["src/auth/auth.middleware.ts:ADMIN_ROLE_HEADER"],
+      "explanation": "ADMIN_ROLE_HEADER was added in auth.middleware.ts but no requirement references this symbol."
+    },
+    {
+      "ruleId": "REQ_WITHOUT_TEST",
+      "severity": "high",
+      "status": "missing_evidence",
+      "requirementIds": ["REQ-005"],
+      "changedArtifactIds": ["src/orders/bulk-import.handler.ts"],
+      "matchStrength": "none",
+      "evidencePaths": [],
+      "explanation": "REQ-005 has no test file referencing its acceptance criteria or the bulk-import handler."
+    },
+    {
+      "ruleId": "PUBLIC_API_CHANGED",
+      "severity": "medium",
+      "status": "needs_human_review",
+      "requirementIds": ["REQ-002"],
+      "changedArtifactIds": ["src/export/csv.exporter.ts"],
+      "matchStrength": "moderate",
+      "evidencePaths": ["src/export/csv.exporter.ts:exportOrdersToCsv"],
+      "explanation": "The public function exportOrdersToCsv changed its signature to add an options parameter. The change is linked to REQ-002 via explicit comment."
+    },
+    {
+      "ruleId": "DOC_STALE_OR_MISSING",
+      "severity": "medium",
+      "status": "needs_human_review",
+      "requirementIds": ["REQ-004"],
+      "changedArtifactIds": ["src/tax/tax.calculator.ts"],
+      "matchStrength": "moderate",
+      "evidencePaths": ["docs/api.md:TaxCalculator"],
+      "explanation": "The rounding method in TaxCalculator was changed from round-half-up to round-half-down but docs/api.md still documents round-half-up."
+    },
+    {
+      "ruleId": "TEST_GAP_ON_CHANGED_SYMBOL",
+      "severity": "high",
+      "status": "missing_evidence",
+      "requirementIds": ["REQ-002"],
+      "changedArtifactIds": ["src/orders/bulk-import.handler.ts"],
+      "matchStrength": "weak",
+      "evidencePaths": [],
+      "explanation": "processBulkImport was added in this PR but has no test covering its malformed-row error-reporting behavior."
+    },
+    {
+      "ruleId": "AMBIGUOUS_TRACEABILITY",
+      "severity": "low",
+      "status": "needs_human_review",
+      "requirementIds": ["REQ-004"],
+      "changedArtifactIds": ["src/tax/tax.calculator.ts", "src/tax/tax.config.ts"],
+      "matchStrength": "weak",
+      "evidencePaths": ["src/tax/tax.calculator.ts", "src/tax/tax.config.ts"],
+      "explanation": "REQ-004 matches both TaxCalculator (via explicit REQ-004 comment) and tax.config.ts (via keyword overlap). Human confirmation needed to disambiguate."
+    },
+    {
+      "ruleId": "CODE_WITHOUT_REQ",
+      "severity": "informational",
+      "status": "informational",
+      "requirementIds": [],
+      "changedArtifactIds": ["src/auth/auth.middleware.ts"],
+      "matchStrength": "weak",
+      "evidencePaths": ["src/auth/auth.middleware.ts:requireAuthenticated"],
+      "explanation": "requireAuthenticated was modified (minor internal refactor). No requirement directly references this symbol but it is covered by the admin middleware chain. Low risk — does not warrant a high-severity finding.",
+      "_seededCase": "9: unrelated low-risk change — must not be high severity"
+    }
+  ]
+}

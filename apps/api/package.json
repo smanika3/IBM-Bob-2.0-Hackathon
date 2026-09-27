@@ -1,0 +1,32 @@
+{
+  "name": "@changeproof/api",
+  "version": "0.1.0",
+  "description": "Fastify API server for ChangeProof",
+  "type": "module",
+  "main": "./dist/server.js",
+  "scripts": {
+    "dev": "node --watch --experimental-vm-modules dist/server.js",
+    "dev:ts": "tsx watch src/server.ts",
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@changeproof/analysis": "workspace:*",
+    "@changeproof/domain": "workspace:*",
+    "@changeproof/ingestion": "workspace:*",
+    "@changeproof/reporting": "workspace:*",
+    "@changeproof/storage": "workspace:*",
+    "fastify": "^5.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}
