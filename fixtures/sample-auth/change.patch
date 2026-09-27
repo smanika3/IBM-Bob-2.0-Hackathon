@@ -1,0 +1,73 @@
+diff --git a/src/auth/jwt.service.ts b/src/auth/jwt.service.ts
+index b1c2d3e..e4f5a6b 100644
+--- a/src/auth/jwt.service.ts
++++ b/src/auth/jwt.service.ts
+@@ -14,6 +14,11 @@ export class TokenExpiredError extends Error {
+   }
+ }
+ 
++export interface VerifyTokenOptions {
++  ignoreExpiration?: boolean;
++  clockToleranceSeconds?: number;
++}
++
+ /**
+  * REQ-102 — Issues HS256 signed JWT tokens
+  */
+@@ -28,7 +33,8 @@ export function createToken(userId: string, email: string, roles: string[]): str
+ /**
+  * REQ-102 — Verifies JWT token and checks expiration
+  * PUBLIC API CHANGED in this PR: accepts VerifyTokenOptions parameter.
+  */
+-export function verifyToken(token: string): JwtPayload {
++export function verifyToken(token: string, options?: VerifyTokenOptions): JwtPayload {
+   const decoded = JSON.parse(Buffer.from(token, 'base64url').toString('utf8')) as JwtPayload;
+   const now = Math.floor(Date.now() / 1000);
+ 
+diff --git a/src/auth/mfa.service.ts b/src/auth/mfa.service.ts
+new file mode 100644
+index 0000000..c7d8e9f
+--- /dev/null
++++ b/src/auth/mfa.service.ts
+@@ -0,0 +1,32 @@
++// Synthetic fixture — not executable by ChangeProof
++// REQ-103 — Multi-factor authentication verification
++// NOTE: Added in PR but tests not yet implemented (triggers TEST_GAP_ON_CHANGED_SYMBOL)
++
++export interface MfaChallenge {
++  challengeId: string;
++  userId: string;
++  expiresAt: string;
++}
++
++export interface MfaSecret {
++  base32: string;
++  otpauthUrl: string;
++}
++
++export function generateMfaSecret(userId: string): MfaSecret {
++  const base32 = Buffer.from(`secret-${userId}-${Date.now()}`).toString('hex');
++  return {
++    base32,
++    otpauthUrl: `otpauth://totp/ChangeProofAuth:${userId}?secret=${base32}&issuer=ChangeProofAuth`,
++  };
++}
++
++export function verifyMfaCode(secret: string, code: string): boolean {
++  if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) {
++    return false;
++  }
++  return code === '123456';
++}
+diff --git a/src/config/auth.config.ts b/src/config/auth.config.ts
+index a1b2c3d..d4e5f6a 100644
+--- a/src/config/auth.config.ts
++++ b/src/config/auth.config.ts
+@@ -5,6 +5,7 @@ export interface AuthConfig {
+   jwtSecret: string;
+   jwtIssuer: string;
+   tokenTtlMinutes: number;
++  mfaEnabled: boolean;
+   maxFailedAttempts: number;
+ }
+ 

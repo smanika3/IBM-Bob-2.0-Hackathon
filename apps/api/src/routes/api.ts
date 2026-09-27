@@ -9,14 +9,44 @@ import * as crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FIXTURE_DIR = path.resolve(__dirname, '../../../../fixtures/sample-checkout');
+const FIXTURES_ROOT = path.resolve(__dirname, '../../../../fixtures');
+
+export interface BundleInfo {
+  bundleId: string;
+  name: string;
+  description: string;
+}
+
+const AVAILABLE_BUNDLES: Record<string, { dir: string; name: string; description: string }> = {
+  sample: {
+    dir: path.join(FIXTURES_ROOT, 'sample-checkout'),
+    name: 'Sample Checkout Analysis',
+    description:
+      'Synthetic TypeScript order-management project for ChangeProof demo. No real data.',
+  },
+  auth: {
+    dir: path.join(FIXTURES_ROOT, 'sample-auth'),
+    name: 'Auth & Session Service Analysis',
+    description: 'JWT token rotation, password complexity, and MFA challenge verification.',
+  },
+  payments: {
+    dir: path.join(FIXTURES_ROOT, 'sample-payments'),
+    name: 'Payment Gateway & Webhook Analysis',
+    description: 'Idempotent charge execution, webhook HMAC verification, and refund workflows.',
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Service layer
 // ---------------------------------------------------------------------------
 
 export interface AnalysisService {
-  getSampleMetadata(): { bundleId: string; name: string; description: string };
+  getSampleMetadata(): {
+    bundleId: string;
+    name: string;
+    description: string;
+    availableBundles: BundleInfo[];
+  };
   runAnalysis(bundleId: string): AnalysisResult;
   persistResult(result: AnalysisResult, store: ChangeProofStore): void;
 }
@@ -24,21 +54,32 @@ export interface AnalysisService {
 export function createAnalysisService(): AnalysisService {
   return {
     getSampleMetadata() {
+      const availableBundles: BundleInfo[] = Object.entries(AVAILABLE_BUNDLES).map(
+        ([id, info]) => ({
+          bundleId: id,
+          name: info.name,
+          description: info.description,
+        }),
+      );
       return {
         bundleId: 'sample',
         name: 'Sample Checkout',
         description:
           'Synthetic TypeScript order-management project for ChangeProof demo. No real data.',
+        availableBundles,
       };
     },
 
     runAnalysis(bundleId: string): AnalysisResult {
-      if (bundleId !== 'sample') {
-        throw new Error(`Unknown bundleId: ${bundleId}. Only "sample" is supported.`);
+      const config = AVAILABLE_BUNDLES[bundleId];
+      if (!config) {
+        throw new Error(
+          `Unknown bundleId: ${bundleId}. Supported: ${Object.keys(AVAILABLE_BUNDLES).join(', ')}`,
+        );
       }
-      const bundle = loadBundleFromDirectory(FIXTURE_DIR, 'sample', 'Sample Checkout');
+      const bundle = loadBundleFromDirectory(config.dir, bundleId, config.name);
       const runId = crypto.randomUUID();
-      return analyzeBundle(bundle, runId, 'Sample Checkout Analysis');
+      return analyzeBundle(bundle, runId, config.name);
     },
 
     persistResult(result: AnalysisResult, store: ChangeProofStore): void {

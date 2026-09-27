@@ -5,7 +5,9 @@ interface HeaderProps {
   run: AnalysisRun | null;
   isApiOnline: boolean;
   isAnalyzing: boolean;
-  onRunSample: () => void;
+  selectedBundle: string;
+  onSelectBundle: (bundleId: string) => void;
+  onRunSample: (bundleId?: string) => void;
   onOpenExport: () => void;
 }
 
@@ -13,6 +15,8 @@ export const Header: React.FC<HeaderProps> = ({
   run,
   isApiOnline,
   isAnalyzing,
+  selectedBundle,
+  onSelectBundle,
   onRunSample,
   onOpenExport,
 }) => {
@@ -73,11 +77,36 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        <div className="header-actions">
+        <div
+          className="header-actions"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}
+        >
+          <select
+            id="select-scenario"
+            className="filter-select"
+            value={selectedBundle}
+            onChange={(e) => onSelectBundle(e.target.value)}
+            disabled={isAnalyzing}
+            style={{
+              padding: '0.45rem 0.75rem',
+              fontSize: '0.8rem',
+              fontWeight: 500,
+              background: 'var(--bg-subtle)',
+              borderColor: 'var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="sample">🛒 Checkout & Orders</option>
+            <option value="auth">🔐 Auth & Session Service</option>
+            <option value="payments">💳 Payment Gateway & Webhooks</option>
+          </select>
+
           <button
             id="btn-run-sample"
             className="btn btn-primary"
-            onClick={onRunSample}
+            onClick={() => onRunSample(selectedBundle)}
             disabled={isAnalyzing}
           >
             {isAnalyzing ? (
@@ -96,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
                 Analyzing...
               </>
             ) : (
-              <>▶ Run Sample Analysis</>
+              <>▶ Run Analysis</>
             )}
           </button>
 

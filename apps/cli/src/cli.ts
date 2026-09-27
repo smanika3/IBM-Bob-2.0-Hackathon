@@ -9,7 +9,21 @@ import * as crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FIXTURE_DIR = path.resolve(__dirname, '../../../fixtures/sample-checkout');
+const FIXTURES_ROOT = path.resolve(__dirname, '../../../fixtures');
+const FIXTURE_MAP: Record<string, { dir: string; name: string }> = {
+  sample: {
+    dir: path.join(FIXTURES_ROOT, 'sample-checkout'),
+    name: 'Sample Checkout',
+  },
+  auth: {
+    dir: path.join(FIXTURES_ROOT, 'sample-auth'),
+    name: 'Auth & Session Service',
+  },
+  payments: {
+    dir: path.join(FIXTURES_ROOT, 'sample-payments'),
+    name: 'Payment Gateway & Webhook Service',
+  },
+};
 const DB_PATH = process.env['DATABASE_PATH'] ?? path.join(process.cwd(), 'changeproof.db');
 
 const VERSION = '0.1.0';
@@ -26,8 +40,8 @@ COMMANDS
   export      Export analysis results
 
 analyze OPTIONS
-  --fixture sample          Use the bundled synthetic fixture
-  --path <dir>              Use a local change-bundle directory
+  --fixture sample|auth|payments   Use a bundled synthetic fixture
+  --path <dir>                     Use a local change-bundle directory
 
 export OPTIONS
   --run <run-id>            ID of the analysis run to export
@@ -35,6 +49,8 @@ export OPTIONS
 
 EXAMPLES
   changeproof analyze --fixture sample
+  changeproof analyze --fixture auth
+  changeproof analyze --fixture payments
   changeproof analyze --path ./my-change-bundle
   changeproof export --run abc123 --format json
 
@@ -88,15 +104,32 @@ function main(): void {
 
 function runAnalyze(opts: Record<string, string>): void {
   let bundleDir: string;
+  let bundleId = 'sample';
+  let bundleName = 'Sample Checkout';
 
-  if (opts['fixture'] === 'sample') {
-    bundleDir = FIXTURE_DIR;
-    console.log('[ChangeProof] Loading bundled sample fixture...');
+  if (opts['fixture']) {
+    const fixture = FIXTURE_MAP[opts['fixture']];
+    if (fixture) {
+      bundleDir = fixture.dir;
+      bundleId = opts['fixture'];
+      bundleName = fixture.name;
+      console.log(`[ChangeProof] Loading bundled fixture: ${opts['fixture']} (${fixture.name})...`);
+    } else {
+      console.error(
+        `[ChangeProof] Error: Unknown fixture "${opts['fixture']}". Supported: sample, auth, payments.`,
+      );
+      process.exit(1);
+      return;
+    }
   } else if (opts['path']) {
     bundleDir = path.resolve(opts['path']);
+    bundleId = path.basename(bundleDir);
+    bundleName = bundleId;
     console.log(`[ChangeProof] Loading bundle from: ${bundleDir}`);
   } else {
-    console.error('[ChangeProof] Error: --fixture sample or --path <dir> is required.');
+    console.error(
+      '[ChangeProof] Error: --fixture sample|auth|payments or --path <dir> is required.',
+    );
     process.exit(1);
     return;
   }
@@ -107,11 +140,7 @@ function runAnalyze(opts: Record<string, string>): void {
     return;
   }
 
-  const bundle = loadBundleFromDirectory(
-    bundleDir,
-    opts['fixture'] ?? 'local',
-    'ChangeProof Analysis',
-  );
+  const bundle = loadBundleFromDirectory(bundleDir, bundleId, bundleName);
   const runId = crypto.randomUUID();
   const result = analyzeBundle(bundle, runId, 'CLI Analysis');
 

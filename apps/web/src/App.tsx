@@ -125,6 +125,7 @@ export default function App(): React.ReactElement {
   const [activeTab, setActiveTab] = React.useState<ActiveTab>('overview');
   const [isApiOnline, setIsApiOnline] = React.useState(false);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [selectedBundle, setSelectedBundle] = React.useState('sample');
 
   // Active run state
   const [currentRun, setCurrentRun] = React.useState<AnalysisRun>(SAMPLE_RUN);
@@ -188,11 +189,11 @@ export default function App(): React.ReactElement {
     };
   }, []);
 
-  const handleRunSample = async () => {
+  const handleRunSample = async (bundleId = selectedBundle) => {
     setIsAnalyzing(true);
     try {
       if (isApiOnline) {
-        const run = await triggerAnalysis('sample');
+        const run = await triggerAnalysis(bundleId);
         setCurrentRun(run);
         const findingsRes = await fetchFindings(run.id);
         const traceRes = await fetchTraceability(run.id);
@@ -223,7 +224,7 @@ export default function App(): React.ReactElement {
       }
     } catch (err) {
       console.error(err);
-      alert('Analysis execution failed.');
+      alert(`Analysis execution failed for ${bundleId}.`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -266,8 +267,13 @@ export default function App(): React.ReactElement {
         run={currentRun}
         isApiOnline={isApiOnline}
         isAnalyzing={isAnalyzing}
-        onRunSample={() => {
-          void handleRunSample();
+        selectedBundle={selectedBundle}
+        onSelectBundle={(id) => {
+          setSelectedBundle(id);
+          void handleRunSample(id);
+        }}
+        onRunSample={(id) => {
+          void handleRunSample(id ?? selectedBundle);
         }}
         onOpenExport={() => setShowExportModal(true)}
       />

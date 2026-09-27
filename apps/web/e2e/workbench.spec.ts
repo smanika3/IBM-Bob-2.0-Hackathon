@@ -77,4 +77,38 @@ test.describe('ChangeProof Workbench E2E Flow', () => {
     await page.locator('#btn-close-export').click();
     await expect(page.locator('#export-modal')).not.toBeVisible();
   });
+
+  test('multi-scenario selector: switch between Auth and Payments scenarios and run analysis', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    const scenarioSelect = page.locator('#select-scenario');
+    await expect(scenarioSelect).toBeVisible();
+
+    // 1. Select Auth scenario
+    await scenarioSelect.selectOption('auth');
+    await expect(page.locator('#btn-run-sample')).toBeEnabled();
+
+    // Verify Auth analysis loaded
+    await expect(page.locator('#app-header')).toContainText('Auth & Session Service');
+    await expect(page.locator('#stat-card-requirements .stat-value')).toHaveText('5');
+    await expect(page.locator('#stat-card-artifacts .stat-value')).toHaveText('3');
+
+    // Check findings tab for Auth findings
+    await page.locator('#tab-btn-findings').click();
+    await expect(page.locator('#findings-tab-view')).toContainText('CONFIG_OR_SCHEMA_CHANGED');
+
+    // 2. Select Payments scenario
+    await scenarioSelect.selectOption('payments');
+    await expect(page.locator('#btn-run-sample')).toBeEnabled();
+
+    // Verify Payments analysis loaded
+    await expect(page.locator('#app-header')).toContainText('Payment Gateway & Webhooks');
+    await expect(page.locator('#findings-tab-view')).toContainText('CODE_WITHOUT_REQ');
+
+    // 3. Traceability matrix should display REQ-201
+    await page.locator('#tab-btn-traceability').click();
+    await expect(page.locator('#row-REQ-201')).toBeVisible();
+  });
 });

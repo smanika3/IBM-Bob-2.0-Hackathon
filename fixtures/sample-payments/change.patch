@@ -1,0 +1,84 @@
+diff --git a/src/payments/charge.service.ts b/src/payments/charge.service.ts
+index c1d2e3f..f4a5b6c 100644
+--- a/src/payments/charge.service.ts
++++ b/src/payments/charge.service.ts
+@@ -10,6 +10,7 @@ export interface ChargeRequest {
+   amountCents: number;
+   currency: string;
+   customerId: string;
++  idempotencyKey: string;
+ }
+ 
+ export interface ChargeResult {
+diff --git a/src/refunds/refund.service.ts b/src/refunds/refund.service.ts
+new file mode 100644
+index 0000000..d7e8f9a
+--- /dev/null
++++ b/src/refunds/refund.service.ts
+@@ -0,0 +1,38 @@
++// Synthetic fixture — not executable by ChangeProof
++// REQ-203 — Refund processing for settled charges
++// NOTE: Added in PR without unit tests (triggers TEST_GAP_ON_CHANGED_SYMBOL)
++
++export class ChargeNotRefundableError extends Error {
++  constructor(message: string) {
++    super(message);
++    this.name = 'ChargeNotRefundableError';
++  }
++}
++
++export class ExceededRefundAmountError extends Error {
++  constructor(message: string) {
++    super(message);
++    this.name = 'ExceededRefundAmountError';
++  }
++}
++
++export interface RefundRequest {
++  chargeId: string;
++  amountCents: number;
++  reason?: string;
++}
++
++export interface RefundResult {
++  refundId: string;
++  chargeId: string;
++  amountCents: number;
++  status: 'succeeded' | 'failed';
++  processedAt: string;
++}
++
++export function processRefund(request: RefundRequest): RefundResult {
++  return {
++    refundId: `re_${Date.now()}`,
++    chargeId: request.chargeId,
++    amountCents: request.amountCents,
++    status: 'succeeded',
++    processedAt: new Date().toISOString(),
++  };
++}
+diff --git a/src/utils/currency.helper.ts b/src/utils/currency.helper.ts
+new file mode 100644
+index 0000000..e8f9a1b
+--- /dev/null
++++ b/src/utils/currency.helper.ts
+@@ -0,0 +1,18 @@
++// Synthetic fixture — not executable by ChangeProof
++// NOTE: Added in PR as internal refactor utility without an explicit product requirement.
++// Triggers CODE_WITHOUT_REQ in ChangeProof analysis.
++
++export type SupportedCurrency = 'USD' | 'EUR' | 'GBP' | 'CAD';
++
++export function formatCurrencyAmount(amountCents: number, currency: SupportedCurrency = 'USD'): string {
++  const units = (amountCents / 100).toFixed(2);
++  switch (currency) {
++    case 'USD':
++      return `$${units}`;
++    case 'EUR':
++      return `€${units}`;
++    case 'GBP':
++      return `£${units}`;
++    case 'CAD':
++      return `CA$${units}`;
++  }
++}

@@ -26,12 +26,19 @@ export type {
 
 export type ActiveTab = 'overview' | 'traceability' | 'findings' | 'evidence' | 'how-it-works';
 
+export interface BundleInfo {
+  bundleId: string;
+  name: string;
+  description: string;
+}
+
 export interface SampleBundleMeta {
   bundleId: string;
   name: string;
   description: string;
-  fileCount: number;
-  fingerprint: string;
+  fileCount?: number;
+  fingerprint?: string;
+  availableBundles?: BundleInfo[];
 }
 
 export interface TraceabilityRequirement extends Requirement {
